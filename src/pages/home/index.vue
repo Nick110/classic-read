@@ -71,6 +71,7 @@ page {
     margin-top: 50px;
     position: relative;
     font-family: 'STKaiti', 'KaiTi';
+    writing-mode: tb-rl;
     .author {
       position: absolute;
       bottom: 40px;
@@ -80,10 +81,6 @@ page {
     .poetry-content {
       position: absolute;
       right: 20px;
-    }
-
-    div {
-      writing-mode: tb-rl;
     }
   }
 }

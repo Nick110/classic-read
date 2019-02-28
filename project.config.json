@@ -10,8 +10,8 @@
 	},
 	"miniprogramRoot": "dist/wx/",
 	"compileType": "miniprogram",
-	"appid": "touristappid",
-	"projectname": "my-project",
+	"appid": "wxe401f90ba6fd9edf",
+	"projectname": "clasic-read",
 	"condition": {
 		"search": {
 			"current": -1,
