@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/home/main",
+    "pages/todolist/main",
+    "pages/my/main"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#00c25b",
+    "navigationBarTitleText": "诗歌",
+    "navigationBarTextStyle": "black",
+    "enablePullDownRefresh": true
+  },
+  "tabBar": {
+    "color": "#767676",
+    "selectedColor": "#00c25b",
+    "list": [{
+      "pagePath": "pages/home/main",
+      "text": "首页",
+      "iconPath": "/static/img/daily.png",
+      "selectedIconPath": "/static/img/daily-selected.png"
+    }, {
+      "pagePath": "pages/todolist/main",
+      "text": "待办事项",
+      "iconPath": "/static/img/library.png",
+      "selectedIconPath": "/static/img/library-selected.png"
+    }, {
+      "pagePath": "pages/my/main",
+      "text": "我的",
+      "iconPath": "/static/img/my.png",
+      "selectedIconPath": "/static/img/my-selected.png"
+    }]
+  }
+}

@@ -1,18 +1,37 @@
-# 概述
-[mpvue](http://mpvue.com/)开源已经有一段时间了，微信小程序的第三方UI组件库也有一些。这是笔者早期使用的经验，可能因为框架版本更新或工具更新，会有所差异。
+# my-project
 
-# 开始
-1. 下载代码   
-`  git clone https://github.com/lIAn0110/mpvue-demo.git  `
+> A Mpvue project
 
-2. 安装项目依赖   
-`
-npm install
-`
+## Build Setup
 
-# 预览
-使用[微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)，把mpvue-demo/dist目录添加进去就可以预览了。
+``` bash
+# 初始化项目
+vue init mpvue/mpvue-quickstart myproject
+cd myproject
 
-# 备注
-上传时，把dist目录也上传了，你可以使用开发工具直接打开预览。在dist目录下有打包后的iView-weapp的代码，在dist/iView目录中。  
-你也可以在[官方仓库](https://github.com/TalkingData/iview-weapp)下载后自己打包，要注意你打包后的iView-weapp的目录名称，它会在组件引用时用到。
+# 安装依赖
+yarn
+
+# 开发时构建
+npm dev
+
+# 打包构建
+npm build
+
+# 指定平台的开发时构建(微信、百度、头条、支付宝)
+npm dev:wx
+npm dev:swan
+npm dev:tt
+npm dev:my
+
+# 指定平台的打包构建
+npm build:wx
+npm build:swan
+npm build:tt
+npm build:my
+
+# 生成 bundle 分析报告
+npm run build --report
+```
+
+For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).

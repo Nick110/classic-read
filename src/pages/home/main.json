@@ -1,0 +1,11 @@
+{
+    "navigationBarTitleText": "每日",
+    "enablePullDownRefresh": true,
+    "usingComponents": {
+        "i-button": "../../../static/iView/button/index",
+        "i-toast": "../../../static/iView/toast/index",
+        "i-icon": "../../../static/iView/icon/index",
+        "i-input": "../../../static/iView/input/index",
+        "i-avatar": "../../../static/iView/avatar/index"
+    }
+}
