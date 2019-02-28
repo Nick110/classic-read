@@ -1,6 +1,7 @@
 <template>
     <div>
-        <botton @click="testLeanCloud">点我</botton>
+        <botton @click="getWangBo">点我</botton>
+        <img :src="poetImg" alt="">
     </div>
 </template>
 
@@ -9,7 +10,9 @@
 var AV = require('leancloud-storage')
 export default {
   data() {
-    return {};
+    return {
+        poetImg: ''
+    };
   },
 
   // 所有页面的created函数会在项目加载的时候被一起调用，而且进入页面的时候不会在被调用，
@@ -28,6 +31,14 @@ export default {
                 words: 'Hello World!'
             }).then(function(object) {
                 alert('LeanCloud Rocks!')
+            })
+        },
+
+        getWangBo() {
+            var query = new AV.Query('LCPoet')
+            query.get('5a7aa71b7a1ff97e530fb57e').then((poet) => {
+                console.log(poet.get('name'))
+                this.poetImg = poet.get('image')
             })
         }
     }
