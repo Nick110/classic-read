@@ -1,4 +1,4 @@
-//   第一个是默认的首页
+// 第一个是默认的首页
 module.exports = [
   {
     path: 'pages/home',

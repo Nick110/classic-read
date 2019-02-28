@@ -44,8 +44,7 @@ export default {
         text: "我的",
         iconPath: "/static/img/my.png",
         selectedIconPath: "/static/img/my-selected.png"
-      }
-    ]
+      }]
     },
   }
 }
