@@ -2,7 +2,8 @@
   "pages": [
     "pages/home/main",
     "pages/todolist/main",
-    "pages/my/main"
+    "pages/my/main",
+    "pages/poetryDetail/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",

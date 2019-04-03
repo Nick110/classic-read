@@ -1,7 +1,13 @@
 import Vue from 'vue'
 import App from './index'
-import MpvueRouterPatch from 'mpvue-router-patch'
 
-Vue.use(MpvueRouterPatch)
 const app = new Vue(App)
 app.$mount()
+
+export default {
+  config: {
+    // 注意，页面级可配置属性相当于只是`src/main.js`中配置里的`window`部分
+    "navigationBarTitleText": "我",
+    "enablePullDownRefresh": false,
+  }
+}

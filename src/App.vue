@@ -1,4 +1,5 @@
 <script>
+/* 这部分相当于原生小程序的 app.js */
 export default {
   created () {
     // 调用API从本地缓存中获取数据

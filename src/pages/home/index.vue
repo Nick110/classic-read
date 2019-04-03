@@ -1,8 +1,8 @@
 <template>
     <div class="daily">
-        <div class="verse">
+        <div class="verse" @click="toDetail">
             <div class="author">{{poetry.author}}</div>
-            <div class="poetry-content">{{verse}}</div>
+            <text class="poetry-content">{{verse}}</text>
         </div>
     </div>
 </template>
@@ -50,6 +50,12 @@ export default {
                 }
                 });
             });
+        },
+
+        toDetail() {
+            wx.navigateTo({
+                url: `/pages/poetryDetail/main?verse=${this.verse}&author=${this.poetry.author}`
+            })
         }
     }
 };
