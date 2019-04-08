@@ -3,11 +3,31 @@
         <i-toast id="toast"/>
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
-            <p class="author">「{{poetry.dynasty}}」{{poet.name}}</p>
+            <p class="author">{{'「'+ poet.dynasty + '」'}}<span>{{poet.name}}</span></p>
             <div class="content-wrapper">
                 <text class="content">
                     {{poetry.content}}
                 </text>
+            </div>
+        </div>
+        <div class="translate">
+            <!-- <i-tabs i-class="translate-tabs" :current="current" color="#00c25b" @change="handleChange">
+                <i-tab key="translate" title="译注"></i-tab>
+                <i-tab key="appreciate" title="赏析"></i-tab>
+                <i-tab key="author" title="作者"></i-tab>
+            </i-tabs> -->
+            <Tabs :currentTab="currentTab" :tabsArr="tabsArr" @listenToChildEvent="switchTab"></Tabs>
+            <div class="tab-content">
+                <p v-if="current === 'translate'">
+                    <text>
+                        {{poetry.fanyi}}  
+                    </text>
+                </p>
+                <p v-if="current === 'appreciate'">
+                    <text>
+                       {{poetry.shangxi}} 
+                    </text>
+                </p>
             </div>
         </div>
     </div>
@@ -16,16 +36,36 @@
 <script>
 // 存储服务
 var AV = require('leancloud-storage')
-const { $Toast } = require("../../../static/iView/base/index");
+const { $Toast } = require("../../../static/iView/base/index")
+import Tabs from '../../components/tabs'
 export default {
-
     data() {
         return {
             verse: '',  // 诗句
             author: '',  // 作者
             poetry: {},
-            poet: {}
+            poet: {},
+            current: 'translate',
+            tabsArr: [
+                {
+                    title: '译注',
+                    current: 'translate'
+                },
+                {
+                    title: '赏析',
+                    current: 'appreciate'
+                },
+                {
+                    title: '作者',
+                    current: 'author'
+                }
+            ],
+            currentTab: 'translate'
         }
+    },
+
+    components: {
+        Tabs,
     },
 
     onLoad(option) {
@@ -41,7 +81,7 @@ export default {
             poetryQuery.contains('content', verse.slice(0, -1))
             poetryQuery.first().then(poetry => {
                 if(poetry && poetry != undefined) {
-                    console.log(poetry)
+                    console.log('poetry: ', poetry)
                     this.poetry = poetry.attributes
                     let poetQuery = new AV.Query('LCPoet')
                     poetQuery.get(poetry.attributes.poet.id).then(poet => {
@@ -56,6 +96,14 @@ export default {
                 }
             })
         },
+
+        switchTab(tab) {
+            this.current = tab
+        },
+        
+        handleChange (e) {
+            this.current = e.target.key
+        },
     }
 
     
@@ -63,6 +111,8 @@ export default {
 </script>
 
 <style lang="less" scoped>
+    // 深度作用选择器：未为了修改iView组件自带的样式。https://blog.csdn.net/zqian1994/article/details/83899919
+    @deep: ~'>>>';
     .poetry-detail {
         .title, .author {
             text-align: center;
@@ -90,6 +140,17 @@ export default {
                 text-indent: 2em;
                 line-height: 28px;
             }
+        }
+
+        .translate {
+            // @{deep} .translate-tabs {
+            //     position: static;
+            // }
+
+            .tab-content {
+                padding: 0 23px;
+            }
+            
         }
     }
 </style>

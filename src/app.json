@@ -17,12 +17,12 @@
     "selectedColor": "#00c25b",
     "list": [{
       "pagePath": "pages/home/main",
-      "text": "首页",
+      "text": "摘录",
       "iconPath": "/static/img/daily.png",
       "selectedIconPath": "/static/img/daily-selected.png"
     }, {
       "pagePath": "pages/todolist/main",
-      "text": "待办事项",
+      "text": "文库",
       "iconPath": "/static/img/library.png",
       "selectedIconPath": "/static/img/library-selected.png"
     }, {

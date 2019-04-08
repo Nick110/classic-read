@@ -62,6 +62,7 @@ export default {
 </script>
 
 <style lang="less">
+@import url('../../theme.less');
 page {
   background-color: #f0eff4;
 }
@@ -78,6 +79,7 @@ page {
     position: relative;
     font-family: 'STKaiti', 'KaiTi';
     writing-mode: tb-rl;
+    box-shadow: 5px 5px 3px #cfcfcf93;
     .author {
       position: absolute;
       bottom: 40px;
