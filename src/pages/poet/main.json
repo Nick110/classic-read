@@ -1,0 +1,7 @@
+{
+    "navigationBarTitleText": "诗人",
+    "enablePullDownRefresh": false,
+    "usingComponents": {
+        "i-card": "../../../static/iView/card/index"
+    }
+}

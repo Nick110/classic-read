@@ -79,7 +79,7 @@ page {
     position: relative;
     font-family: 'STKaiti', 'KaiTi';
     writing-mode: tb-rl;
-    box-shadow: 5px 5px 3px #cfcfcf93;
+    box-shadow: 6px 6px 4px #6e6e6e56;
     .author {
       position: absolute;
       bottom: 40px;

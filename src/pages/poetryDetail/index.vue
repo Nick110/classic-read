@@ -9,6 +9,10 @@
                     {{poetry.content}}
                 </text>
             </div>
+
+            <i-spin custom fix size="large" v-if="loading">
+                <view>加载中...</view>
+            </i-spin>
         </div>
         <div class="translate">
             <!-- <i-tabs i-class="translate-tabs" :current="current" color="#00c25b" @change="handleChange">
@@ -28,6 +32,10 @@
                        {{poetry.shangxi}} 
                     </text>
                 </p>
+                <div class="author-tab" v-if="current === 'author'">
+                    <p class="poet-title"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
+                    <p class="poet-desc">{{poet.desc}}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -43,9 +51,12 @@ export default {
         return {
             verse: '',  // 诗句
             author: '',  // 作者
-            poetry: {},
+            poetry: {
+                dynasty: ''
+            },
             poet: {},
             current: 'translate',
+            loading: true,
             tabsArr: [
                 {
                     title: '译注',
@@ -85,7 +96,9 @@ export default {
                     this.poetry = poetry.attributes
                     let poetQuery = new AV.Query('LCPoet')
                     poetQuery.get(poetry.attributes.poet.id).then(poet => {
+                        console.log('poet: ', poet)
                         this.poet = poet.attributes
+                        this.poet.id = poet.id
                     })
                 } else {
                     $Toast({
@@ -94,16 +107,22 @@ export default {
                         type: "warning"
                     });
                 }
-            })
+            }).then(() => this.loading = false)
         },
 
         switchTab(tab) {
             this.current = tab
         },
         
-        handleChange (e) {
-            this.current = e.target.key
-        },
+        // handleChange (e) {
+        //     this.current = e.target.key
+        // },
+
+        toPoet(id) {
+            wx.navigateTo({
+                url: `/pages/poet/main?id=${id}`
+            })
+        }
     }
 
     
@@ -113,6 +132,7 @@ export default {
 <style lang="less" scoped>
     // 深度作用选择器：未为了修改iView组件自带的样式。https://blog.csdn.net/zqian1994/article/details/83899919
     @deep: ~'>>>';
+    @import url('../../theme.less');
     .poetry-detail {
         .title, .author {
             text-align: center;
@@ -148,9 +168,25 @@ export default {
             // }
 
             .tab-content {
-                padding: 0 23px;
+                padding: 0 23px 10px 23px;
             }
             
+            .author-tab {
+                padding: 25px 0;
+
+                .poet-title {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 15px;
+                    .poet-more {
+                        color: @theme-green;
+                    }
+                }
+
+                .poet-desc {
+                    text-indent: 2em;
+                }
+            }
         }
     }
 </style>
