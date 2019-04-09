@@ -3,37 +3,43 @@
         <i-toast id="toast"/>
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
-            <p class="author">{{'「'+ poet.dynasty + '」'}}<span>{{poet.name}}</span></p>
+            <p class="author" v-if="!poetNotFound">{{'「'+ poet.dynasty + '」'}}<span>{{poet.name}}</span></p>
             <div class="content-wrapper">
                 <text class="content">
                     {{poetry.content}}
                 </text>
             </div>
-
-            <i-spin custom fix size="large" v-if="loading">
-                <view>加载中...</view>
-            </i-spin>
+            <!-- <i-spin i-class="loading" custom fix size="large" v-if="loading">
+                <i-icon type="refresh" size="30" i-class="icon-load"></i-icon>
+                <view class="loading-view">加载中...</view>
+            </i-spin> -->
+            <div class="load-more-wrapper" v-if="loading">
+                <i-load-more i-class="load-more"/>
+            </div>
         </div>
         <div class="translate">
-            <!-- <i-tabs i-class="translate-tabs" :current="current" color="#00c25b" @change="handleChange">
-                <i-tab key="translate" title="译注"></i-tab>
-                <i-tab key="appreciate" title="赏析"></i-tab>
-                <i-tab key="author" title="作者"></i-tab>
-            </i-tabs> -->
-            <Tabs :currentTab="currentTab" :tabsArr="tabsArr" @listenToChildEvent="switchTab"></Tabs>
+            <Tabs :currentTab="current" :tabsArr="tabsArr" @listenToChildEvent="switchTab"></Tabs>
             <div class="tab-content">
                 <p v-if="current === 'translate'">
-                    <text>
-                        {{poetry.fanyi}}  
+                    <text v-if="poetry.fanyi">
+                        {{poetry.fanyi}}
                     </text>
+                    <no-data v-else name="暂无译注"></no-data>
                 </p>
                 <p v-if="current === 'appreciate'">
-                    <text>
+                    <text v-if="poetry.shangxi">
                        {{poetry.shangxi}} 
                     </text>
+                    <no-data v-else name="暂无赏析"></no-data>
+                </p>
+                <p v-if="current === 'about'">
+                    <text v-if="poetry.about">
+                        {{poetry.about}}
+                    </text>
+                    <no-data v-else name="暂无背景"></no-data>
                 </p>
                 <div class="author-tab" v-if="current === 'author'">
-                    <p class="poet-title"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
+                    <p class="poet-title" v-if="!poetNotFound"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
                     <p class="poet-desc">{{poet.desc}}</p>
                 </div>
             </div>
@@ -46,17 +52,20 @@
 var AV = require('leancloud-storage')
 const { $Toast } = require("../../../static/iView/base/index")
 import Tabs from '../../components/tabs'
+import NoData from '../../components/noData'
 export default {
     data() {
         return {
             verse: '',  // 诗句
             author: '',  // 作者
-            poetry: {
+            poetry: {},
+            poet: {
+                name: '',
                 dynasty: ''
             },
-            poet: {},
             current: 'translate',
             loading: true,
+            poetNotFound: false,
             tabsArr: [
                 {
                     title: '译注',
@@ -67,33 +76,39 @@ export default {
                     current: 'appreciate'
                 },
                 {
+                    title: '背景',
+                    current: 'about'
+                },
+                {
                     title: '作者',
                     current: 'author'
                 }
             ],
-            currentTab: 'translate'
         }
     },
 
     components: {
         Tabs,
+        NoData
     },
 
     onLoad(option) {
-        this.verse = option.verse
-        this.author = option.author
-        this.getOnePoetry(option.verse, option.author)
+        if(option.id) {
+            this.getOnePoetryById(option.id)
+        } else {
+            this.getOnePoetry(option.verse, option.author)
+        }
+        this.current = 'translate'
     },
 
     methods: {
-       getOnePoetry(verse, author) {
+        getOnePoetryById(id) {
             const poetryQuery = new AV.Query('LCPoetry')
-            poetryQuery.startsWith('author', author)
-            poetryQuery.contains('content', verse.slice(0, -1))
-            poetryQuery.first().then(poetry => {
+            poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
                     console.log('poetry: ', poetry)
                     this.poetry = poetry.attributes
+                    this.poetry.shangxi = poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n')
                     let poetQuery = new AV.Query('LCPoet')
                     poetQuery.get(poetry.attributes.poet.id).then(poet => {
                         console.log('poet: ', poet)
@@ -107,7 +122,40 @@ export default {
                         type: "warning"
                     });
                 }
-            }).then(() => this.loading = false)
+            })
+        },
+
+        getOnePoetry(verse, author) {
+            this.loading = true
+            const poetryQuery = new AV.Query('LCPoetry')
+            poetryQuery.startsWith('author', author)
+            poetryQuery.contains('content', verse.slice(0, -1))
+            poetryQuery.addDescending('star')
+            poetryQuery.first().then(poetry => {
+                if(poetry && poetry != undefined) {
+                    console.log('poetry: ', poetry)
+                    this.poetry = poetry.attributes
+                    this.poetry.shangxi = poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
+                    // 如果诗人存在
+                    if(poetry.attributes.poet.id) {
+                        let poetQuery = new AV.Query('LCPoet')
+                        poetQuery.get(poetry.attributes.poet.id).then(poet => {
+                            console.log('poet: ', poet)
+                            this.poet = poet.attributes
+                            this.poet.id = poet.id
+                        })
+                    } else {
+                        this.poetNotFound = true
+                    }
+                    this.loading = false 
+                } else {
+                    $Toast({
+                        content: "该诗句不存在！",
+                        duration: 1,
+                        type: "warning"
+                    });
+                }
+            })
         },
 
         switchTab(tab) {
@@ -119,7 +167,7 @@ export default {
         // },
 
         toPoet(id) {
-            wx.navigateTo({
+            wx.redirectTo({
                 url: `/pages/poet/main?id=${id}`
             })
         }
@@ -159,6 +207,7 @@ export default {
             .content {
                 text-indent: 2em;
                 line-height: 28px;
+                font-size: 20px;
             }
         }
 
@@ -177,7 +226,7 @@ export default {
                 .poet-title {
                     display: flex;
                     justify-content: space-between;
-                    margin-bottom: 15px;
+                    // margin-bottom: 15px;
                     .poet-more {
                         color: @theme-green;
                     }
@@ -187,6 +236,17 @@ export default {
                     text-indent: 2em;
                 }
             }
+        }
+
+        .load-more-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 8;
+            background-color: #ffffff;
+            padding-top: 50%;
         }
     }
 </style>

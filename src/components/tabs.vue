@@ -20,6 +20,10 @@ export default {
         currentTab: String
     },
 
+    onLoad() {
+        this.current = this.tabsArr[0].current
+    },
+
     methods: {
         switchTab(currentTab) {
             this.current = currentTab
@@ -35,7 +39,7 @@ export default {
         display: flex;
         justify-content: space-around;
         color: @theme-grey;
-        font-size: 14px;
+        font-size: 16px;
 
         .tab {
             padding-bottom: 7px;

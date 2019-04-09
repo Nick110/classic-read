@@ -3,7 +3,8 @@
     "pages/home/main",
     "pages/todolist/main",
     "pages/my/main",
-    "pages/poetryDetail/main"
+    "pages/poetryDetail/main",
+    "pages/poet/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",
