@@ -1,0 +1,6 @@
+{
+    "navigationBarTitleText": "分类",
+    "usingComponents": {
+        "i-button": "../../../static/iView/button/index"
+    }
+}

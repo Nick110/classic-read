@@ -136,6 +136,7 @@ export default {
                     console.log('poetry: ', poetry)
                     this.poetry = poetry.attributes
                     this.poetry.shangxi = poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
+                    this.poetry.about = poetry.attributes.about.replace(/创作背景?\n\n/g, '创作背景\n')
                     // 如果诗人存在
                     if(poetry.attributes.poet.id) {
                         let poetQuery = new AV.Query('LCPoet')

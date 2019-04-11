@@ -1,10 +1,12 @@
 {
   "pages": [
     "pages/home/main",
+    "pages/library/main",
     "pages/todolist/main",
     "pages/my/main",
     "pages/poetryDetail/main",
-    "pages/poet/main"
+    "pages/poet/main",
+    "pages/tagDetail/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",
@@ -22,7 +24,7 @@
       "iconPath": "/static/img/daily.png",
       "selectedIconPath": "/static/img/daily-selected.png"
     }, {
-      "pagePath": "pages/todolist/main",
+      "pagePath": "pages/library/main",
       "text": "文库",
       "iconPath": "/static/img/library.png",
       "selectedIconPath": "/static/img/library-selected.png"

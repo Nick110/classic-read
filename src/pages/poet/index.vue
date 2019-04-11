@@ -63,7 +63,7 @@ export default {
                 wx.setNavigationBarTitle({
                     title: poet.attributes.name
                 })
-                console.log(this.poet)
+                // console.log(this.poet)
             }).catch(err => {
                 console.log(err)
             })
@@ -86,7 +86,7 @@ export default {
                     }
                     tempArr.push(itemObj)
                 }
-                console.log(tempArr)
+                // console.log(tempArr)
                 this.hotTen = tempArr
             })
         },
