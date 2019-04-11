@@ -77,7 +77,7 @@ page {
     background-color: #ffffff;
     margin-top: 50px;
     position: relative;
-    font-family: 'STKaiti', 'KaiTi';
+    font-family: @ZoomlaXingtiJ3;
     writing-mode: tb-rl;
     box-shadow: 6px 6px 4px #6e6e6e56;
     .author {

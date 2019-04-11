@@ -16,7 +16,7 @@ export default {
 <style lang="less" scoped>
     .no-data {
         text-align: center;
-        padding: 20px 0;
+        padding: 30px 0;
         .no-data-img {
             width: 98px;
             height: 64px;

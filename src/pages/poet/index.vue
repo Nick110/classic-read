@@ -32,6 +32,7 @@
 // 存储服务
 var AV = require('leancloud-storage')
 import NoData from '../../components/noData'
+import {formatSentence} from '../../utils/index.js'
 
 export default {
     data() {
@@ -82,7 +83,7 @@ export default {
                     let itemObj = {
                         id: item.id,
                         name: item.attributes.name,
-                        sentence: item.attributes.content.split('\n')[0]
+                        sentence: formatSentence(item.attributes.content)
                     }
                     tempArr.push(itemObj)
                 }

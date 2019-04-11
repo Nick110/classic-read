@@ -3,7 +3,7 @@
         <i-toast id="toast"/>
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
-            <p class="author" v-if="!poetNotFound">{{'「'+ poet.dynasty + '」'}}<span>{{poet.name}}</span></p>
+            <p class="author">{{'「'+ poetry.dynasty + '」'}}<span v-if="poet.desc">{{poet.name}}</span></p>
             <div class="content-wrapper">
                 <text class="content">
                     {{poetry.content}}
@@ -32,15 +32,18 @@
                     </text>
                     <no-data v-else name="暂无赏析"></no-data>
                 </p>
-                <p v-if="current === 'about'">
+                <p class="about-tab" v-if="current === 'about'">
                     <text v-if="poetry.about">
                         {{poetry.about}}
                     </text>
                     <no-data v-else name="暂无背景"></no-data>
                 </p>
                 <div class="author-tab" v-if="current === 'author'">
-                    <p class="poet-title" v-if="!poetNotFound"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
-                    <p class="poet-desc">{{poet.desc}}</p>
+                    <div v-if="poet.desc">
+                        <p class="poet-title"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
+                        <p class="poet-desc">{{poet.desc}}</p>
+                    </div>
+                    <no-data v-else name="暂无作者信息"></no-data>
                 </div>
             </div>
         </div>
@@ -59,10 +62,7 @@ export default {
             verse: '',  // 诗句
             author: '',  // 作者
             poetry: {},
-            poet: {
-                name: '',
-                dynasty: ''
-            },
+            poet: {},
             current: 'translate',
             loading: true,
             poetNotFound: false,
@@ -103,42 +103,16 @@ export default {
 
     methods: {
         getOnePoetryById(id) {
+            this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
             poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
                     console.log('poetry: ', poetry)
                     this.poetry = poetry.attributes
-                    this.poetry.shangxi = poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n')
-                    let poetQuery = new AV.Query('LCPoet')
-                    poetQuery.get(poetry.attributes.poet.id).then(poet => {
-                        console.log('poet: ', poet)
-                        this.poet = poet.attributes
-                        this.poet.id = poet.id
-                    })
-                } else {
-                    $Toast({
-                        content: "该诗句不存在！",
-                        duration: 1,
-                        type: "warning"
-                    });
-                }
-            })
-        },
-
-        getOnePoetry(verse, author) {
-            this.loading = true
-            const poetryQuery = new AV.Query('LCPoetry')
-            poetryQuery.startsWith('author', author)
-            poetryQuery.contains('content', verse.slice(0, -1))
-            poetryQuery.addDescending('star')
-            poetryQuery.first().then(poetry => {
-                if(poetry && poetry != undefined) {
-                    console.log('poetry: ', poetry)
-                    this.poetry = poetry.attributes
-                    this.poetry.shangxi = poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
-                    this.poetry.about = poetry.attributes.about.replace(/创作背景?\n\n/g, '创作背景\n')
+                    this.poetry.shangxi = poetry.attributes.shangxi ? poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n') : ''
+                    this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
                     // 如果诗人存在
-                    if(poetry.attributes.poet.id) {
+                    if(poetry.attributes.poet) {
                         let poetQuery = new AV.Query('LCPoet')
                         poetQuery.get(poetry.attributes.poet.id).then(poet => {
                             console.log('poet: ', poet)
@@ -146,7 +120,7 @@ export default {
                             this.poet.id = poet.id
                         })
                     } else {
-                        this.poetNotFound = true
+                        this.poet = {}
                     }
                     this.loading = false 
                 } else {
@@ -156,6 +130,44 @@ export default {
                         type: "warning"
                     });
                 }
+            }).catch(err => {
+                console.log(err)
+            })
+        },
+
+        getOnePoetry(verse, author) {
+            this.loading = true
+            const poetryQuery = new AV.Query('LCPoetry')
+            poetryQuery.startsWith('author', author)
+            poetryQuery.contains('content', verse.split(',')[0])
+            poetryQuery.addDescending('star')
+            poetryQuery.first().then(poetry => {
+                if(poetry && poetry != undefined) {
+                    console.log('poetry: ', poetry)
+                    this.poetry = poetry.attributes
+                    this.poetry.shangxi = poetry.attributes.shangxi && poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
+                    this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
+                    // 如果诗人存在
+                    if(poetry.attributes.poet) {
+                        let poetQuery = new AV.Query('LCPoet')
+                        poetQuery.get(poetry.attributes.poet.id).then(poet => {
+                            console.log('poet: ', poet)
+                            this.poet = poet.attributes
+                            this.poet.id = poet.id
+                        })
+                    } else {
+                        this.poet = {}
+                    }
+                    this.loading = false 
+                } else {
+                    $Toast({
+                        content: "该诗句不存在！",
+                        duration: 1,
+                        type: "warning"
+                    });
+                }
+            }).catch(err => {
+                console.log(err)
             })
         },
 
@@ -206,7 +218,6 @@ export default {
             justify-content: center;
             margin-top: -12px;
             .content {
-                text-indent: 2em;
                 line-height: 28px;
                 font-size: 20px;
             }
@@ -221,6 +232,10 @@ export default {
                 padding: 0 23px 10px 23px;
             }
             
+            .about-tab {
+                padding-bottom: 25px;
+            }
+
             .author-tab {
                 padding: 25px 0;
 

@@ -18,6 +18,17 @@ export function formatTime (date) {
   return `${t1} ${t2}`
 }
 
+// 处理诗句格式
+export function formatSentence(sentence) {
+    // 取诗句第一句
+    let firstSentence = sentence.split(/。|！|；/)[0]
+    // 补充符号
+    let symbol = sentence.match(/。|！|；/)
+
+    let secondSentence = firstSentence.replace(/\s\s/, '')
+    return secondSentence + symbol
+}
+
 export default {
   formatNumber,
   formatTime
