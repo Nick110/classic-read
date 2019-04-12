@@ -1,9 +1,12 @@
 <template>
     <div class="library">
-        <i-tabs :current="current" color="#00c25b" @change="handleChange">
-            <i-tab key="type" title="分类"></i-tab>
-            <i-tab key="author" title="作者"></i-tab>
-        </i-tabs>
+        <div class="top-wrapper">
+            <van-search :value="searchValue" placeholder="搜索诗词、作者" shape="round" />
+            <i-tabs :current="current" color="#00c25b" @change="handleChange">
+                <i-tab key="type" title="分类"></i-tab>
+                <i-tab key="author" title="作者"></i-tab>
+            </i-tabs>
+        </div>
         <!-- <div class="anthology">
             <p class="title">
                 「 选集 」
@@ -15,7 +18,6 @@
                 </div>
             </div>
         </div> -->
-
         <!-- <div class="textbook">
             <p class="title">
                 「 教材 」
@@ -27,12 +29,23 @@
                 </div>
             </div>
         </div> -->
+        <div class="tags-wrapper" v-if="current==='type'">
+            <Tag title="选集" :list="anthologyList"></Tag>
+            <Tag title="教材" :list="textbookList"></Tag>
+            <Tag title="主题" :list="themeList"></Tag>
+            <Tag title="写景" :list="sceneryList"></Tag>
+            <Tag title="节日" :list="festivalList"></Tag>
+        </div>
 
-        <Tag title="选集" :list="anthologyList"></Tag>
-        <Tag title="教材" :list="textbookList"></Tag>
-        <Tag title="主题" :list="themeList"></Tag>
-        <Tag title="写景" :list="sceneryList"></Tag>
-        <Tag title="节日" :list="festivalList"></Tag>
+        <div class="author-wrapper" v-else>
+            <div class="author-item" v-for="(poet, index) in famousPoetList" :key=index @click="toPoet(poet.id)">
+                <img :src="poet.image" class="poet-img">
+                <p class="poet-name">{{poet.name}}</p>
+                <van-icon size="30px" name="thumb-circle-o" color="#92130a" :info="poet.star"/>
+            </div>
+            <p class="no-more" v-show="isBottom">——当前显示最著名的100位诗人，使用最上方的搜索吧——</p>
+        </div>
+        
     </div>
 </template>
 <script>
@@ -47,7 +60,10 @@ export default {
             sceneryList: [],
             textbookList: [],
             themeList: [],
-            festivalList: []
+            festivalList: [],
+            searchValue: '',
+            famousPoetList: [],
+            isBottom: false
         }
     },
 
@@ -56,11 +72,14 @@ export default {
     },
 
     onLoad() {
+        this.current = 'type'
+        this.isBottom = false
         this.getTags('选集', 'anthologyList')
         this.getTags('教材', 'textbookList')
         this.getTags('主题', 'themeList')
         this.getTags('写景', 'sceneryList')
         this.getTags('节日', 'festivalList')
+        this.getFamousPoetList()
     },
 
     methods: {
@@ -88,13 +107,79 @@ export default {
         handleChange (e) {
             this.current = e.target.key
         },
+
+        getFamousPoetList() {
+            const poetQuery = new AV.Query('LCPoet')
+            poetQuery.addDescending('star')
+            poetQuery.find().then(poetList => {
+                let arr = []
+                poetList.forEach(item => {
+                    let obj = {
+                        name: item.attributes.name,
+                        star: item.attributes.star,
+                        image: item.attributes.image ? item.attributes.image : "/static/img/default_avatar.png",
+                        id: item.id
+                    }
+                    arr.push(obj)
+                })
+                this.famousPoetList = arr
+                this.isBottom = true
+                console.log(this.famousPoetList)
+            }).catch(err => {
+                console.log(err)
+            })
+        },
+
+        toPoet(id) {
+            wx.navigateTo({
+                url: `/pages/poet/main?id=${id}`
+            })
+        }
     }
 }
 </script>
 
 <style lang="less" scoped>
-    // @import url('../../theme.less');
+    @import url('../../theme.less');
+    @deep: ~'>>>';
     .library {
         padding-bottom: 10px;
+        .top-wrapper {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9;
+            box-shadow: 0 2px 2px #d8d8d8;
+        }
+        .author-wrapper, .tags-wrapper {
+            margin-top: 96px;
+        }
+        .author-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            padding-bottom: 5px;
+            .author-item {
+                width: 82px;
+                text-align: center;
+                padding-bottom: 10px;
+                .poet-name {
+                    font-size: 14px;
+                    margin-bottom: 5px;
+                }
+            }
+            .poet-img {
+                width: 62px;
+                height: 90px;
+            }
+
+            .no-more {
+                width: 100%;
+                text-align: center;
+                font-size: 12px;
+                color: @second-grey;
+            }
+        }
     }
 </style>

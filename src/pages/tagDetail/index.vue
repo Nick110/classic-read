@@ -26,7 +26,7 @@ export default {
             poetryList: [],
             loadingBottom: false,
             currentPage: 1,
-            pageSize: 100,
+            pageSize: 20,
             tagId: '',
             tip: ''
         };
@@ -35,13 +35,16 @@ export default {
     onLoad(option) {
         this.tagId = option.id
         this.currentPage = 1
+        this.tip = ''
         this.getTagInfo(option.id)
         this.getTagPoetry(option.id, [], this.currentPage, this.pageSize)
     },
 
     // 监听用户上拉触底事件
     onReachBottom() {
-        this.loadingBottom = true
+        if(this.tip !== '没有更多了'){
+            this.loadingBottom = true
+        }
         this.getTagPoetry(this.tagId, this.poetryList, this.currentPage, this.pageSize).then((res) => {
             this.loadingBottom = false
             if(res == 'nomore') {
@@ -135,7 +138,7 @@ export default {
                 font-size: 18px;
                 margin-bottom: 5px;
                 .poetry-name {
-                    width: 230px;
+                    width: 220px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;

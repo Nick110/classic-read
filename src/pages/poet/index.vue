@@ -1,23 +1,53 @@
 <template>
     <div class="poet">
-        <i-card i-class="desc-card" :title="poet.name + '「' + poet.dynasty + '」'" :thumb="poet.image">
-            <view slot="content" class="desc">
-                <p class="desc-title">简介</p>
-                {{poet.desc}}
-            </view>
-            <!-- <view slot="footer">尾部内容</view> -->
-        </i-card>
+        <div class="desc-wrapper">
+            <div class="poet-desc">
+                <div class="avatar">
+                    <img class="avatar-img" :src="poet.image ? poet.image : '/static/img/default_avatar.png'">
+                </div>
+                <div>
+                    <p class="poet-name">{{poet.name}}
+                        <span class="poet-dynasty">{{'[' + poet.dynasty + ']'}}</span>
+                    </p>
+                    <p class="poet-dynasty">
+                        <span>{{'获得' + poet.star + '赞'}}</span><br/>
+                        <span v-if="count">{{'创作' + count + '余首作品'}}</span>
+                    </p>
+                </div>
+                <div class="poet-praise">
+                    <van-icon size="60px" name="thumb-circle-o" color="#92130a"/>
+                </div>
+            </div>
+
+            <div class="desc-text">
+                <van-icon size="18px" name="user-o" color="#00c25b"/>
+                <span class="title-span">简介</span>
+                <p class="desc-p">
+                    {{poet.desc}}
+                </p>
+            </div>
+        </div>
+
         <div class="hot">
-            <p class="hot-title">经典作品</p>
+            <p class="hot-title">
+                <van-icon size="18px" name="fire-o" color="#92130a"/>
+                <span class="title-span">经典作品</span>
+            </p>
             <div class="hot-list-wrapper">
                 <div class="hot-list" v-for="(poetry, index) in hotTen" :key="index" @click="toPoetry(poetry.id)">
                     <p class="hot-name">{{poetry.name}}</p>
                     <p class="hot-sentence">{{poetry.sentence}}</p>
                 </div>
             </div>
+            <div class="more">
+                查看更多>>
+            </div>
         </div>
         <div class="poet-intro">
-            <p class="intro-title">人物事迹</p>
+            <p class="intro-title">
+                <van-icon size="18px" name="user-o" color="#104E8B"/>
+                <span class="title-span">人物事迹</span>
+            </p>
             <div class="intro-content">
                 <text v-if="poet.content != ''">
                     {{poet.content}}
@@ -42,7 +72,8 @@ export default {
                 dynasty: ''
             },
             // 经典作品
-            hotTen: []
+            hotTen: [],
+            count: 0
         }
     },
 
@@ -59,6 +90,7 @@ export default {
         getPoetInfo(id) {
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.get(id).then(poet => {
+                console.log(poet)
                 this.poet = poet.attributes
                 this.poet.content = poet.attributes.content ? poet.attributes.content.slice(0, -1) : ''
                 wx.setNavigationBarTitle({
@@ -74,6 +106,12 @@ export default {
             const poetryQuery = new AV.Query('LCPoetry')
             var poet = AV.Object.createWithoutData('LCPoet', id);
             poetryQuery.equalTo('poet', poet)
+            poetryQuery.count().then(count => {
+                // console.log(count)
+                this.count = count
+            }).catch(err => {
+                console.log(err)
+            })
             poetryQuery.addDescending('star')
             poetryQuery.limit(10)
             poetryQuery.select(['name', 'content'])
@@ -103,16 +141,59 @@ export default {
 
 <style lang="less" scoped>
     @deep: ~'>>>';
+    @import url('../../theme.less');
     .poet {
         padding: 15px 0;
+        background-color: #f0eff4ab;
 
-        // @{deep} .desc-card:first-child {
-        //     margin-bottom: 15px;
-        // }
+        .desc-wrapper {
+            width: 350px;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 2px 2px 2px 2px #ebebeb;
+        }
 
-        .desc-title {
-            font-size: 18px;
-            margin-bottom: 6px;
+        .poet-desc {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            .avatar {
+                width: 60px;
+                height: 90px;
+                .avatar-img {
+                    width: 60px;
+                    height: 90px;
+                    border-radius: 6px;
+                }
+            }
+
+            .poet-name {
+                font-size: 26px;
+            }
+
+            .poet-dynasty {
+                font-size: 14px;
+                color: @second-grey;
+            }
+        }
+
+        .desc-text {
+            .title-span {
+                font-size: 18px;
+                color: #00c25b;
+                display: inline-block;
+                margin-bottom: 10px;
+                margin-left: 10px;
+            }
+
+            .desc-p {
+                font-size: 14px;
+                text-indent: 2em;
+            }
         }
 
         .poet-intro {
@@ -120,18 +201,25 @@ export default {
             font-size: 14px;
             overflow: hidden;
             position: relative;
-            background: #fff;
-            border: 1rpx solid #dddee1;
-            border-radius: 5px;
+            // background: #fff;
+            // border: 1rpx solid #dddee1;
+            // border-radius: 5px;
             margin-bottom: 15px;
             .intro-title {
-                padding: 10px 16px;
+                // padding: 10px 16px;
                 font-size: 18px;
-                border-bottom: 1rpx solid #dddee1;
+                // border-bottom: 1rpx solid #dddee1;
+                .title-span {
+                    font-size: 18px;
+                    display: inline-block;
+                    margin-bottom: 10px;
+                    margin-left: 10px;
+                    color: #104E8B;
+                }
             }
 
             .intro-content {
-                padding: 10px 16px;
+                // padding: 10px 16px;
                 color: rgb(85, 89, 104);
             }
         }
@@ -142,8 +230,10 @@ export default {
             padding-right: 0;
             margin-bottom: 10px;
             .hot-title {
-                .poet-intro > .intro-title;
-                padding-left: 0;
+                .title-span {
+                    .desc-text > .title-span;
+                    color: #92130a;
+                }
             }
             .hot-list-wrapper {
                 .hot-list {
@@ -166,8 +256,12 @@ export default {
                     }
                 }
             }
-        }
-        
-        
+
+            .more {
+                text-align: center;
+                margin-top: 10px;
+                color: 	#3A5FCD;
+            }
+        }   
     }
 </style>

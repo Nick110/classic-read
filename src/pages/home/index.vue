@@ -54,7 +54,7 @@ export default {
 
         toDetail() {
             wx.navigateTo({
-                url: `/pages/poetryDetail/main?verse=${this.verse}&author=${this.poetry.author}`
+                url: `/pages/poetryDetail/main?verse=${this.verse.split(',')[0]}&author=${this.poetry.author}`
             })
         }
     }
@@ -63,6 +63,7 @@ export default {
 
 <style lang="less">
 @import url('../../theme.less');
+@import url('../../../static/font/www.fontorg.com.f1594-5182cb50026.css');
 page {
   background-color: #f0eff4;
 }
