@@ -20,7 +20,7 @@
             </div>
 
             <div class="desc-text">
-                <van-icon size="18px" name="user-o" color="#00c25b"/>
+                <van-icon size="18px" name="user-o" color="#2d5589"/>
                 <span class="title-span">简介</span>
                 <p class="desc-p">
                     {{poet.desc}}
@@ -49,10 +49,11 @@
                 <span class="title-span">人物事迹</span>
             </p>
             <div class="intro-content">
-                <text v-if="poet.content != ''">
+                <text :class="['content-text', foldObj.fold && textLength > 300 ? 'fold-content-text' : '']" v-if="poet.content != ''">
                     {{poet.content}}
                 </text>
                 <no-data v-else></no-data>
+                <p :class="['unfold', foldObj.fold ? 'padding-fold' : '']" v-if="poet.content != '' && textLength > 300" @click="unfold">{{foldObj.foldText}}&nbsp;<van-icon :name="foldObj.iconName"></van-icon></p>
             </div>
         </div>
     </div>
@@ -73,7 +74,14 @@ export default {
             },
             // 经典作品
             hotTen: [],
-            count: 0
+            count: 0,
+            foldObj: {
+                // 是否展开人物事迹
+                fold: true,
+                foldText: '展开全文',
+                iconName: 'arrow-down'
+            },
+            textLength: ''
         }
     },
 
@@ -82,11 +90,27 @@ export default {
     },
 
     onLoad(option) {
+        this.foldObj = {
+            // 是否展开人物事迹
+            fold: true,
+            foldText: '展开全文',
+            iconName: 'arrow-down'
+        }
+        
         this.getPoetInfo(option.id)
         this.getHotPoetry(option.id)
     },
 
     methods: {
+        // 获取元素高度
+        getDomHeight(className) {
+            var query = wx.createSelectorQuery()
+            query.select(className).boundingClientRect(function (rect) {
+                console.log(rect.height)
+                this.textHeight = rect.height
+            }).exec()
+        },
+
         getPoetInfo(id) {
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.get(id).then(poet => {
@@ -96,7 +120,7 @@ export default {
                 wx.setNavigationBarTitle({
                     title: poet.attributes.name
                 })
-                // console.log(this.poet)
+                this.textLength = this.poet.content.length || 0
             }).catch(err => {
                 console.log(err)
             })
@@ -134,6 +158,23 @@ export default {
             wx.navigateTo({
                 url: `/pages/poetryDetail/main?id=${id}`
             })
+        },
+
+        unfold() {
+            // 已折叠
+            if(this.foldObj.fold) {
+                this.foldObj = {
+                    fold: false,
+                    foldText: '收起',
+                    iconName: 'arrow-up'
+                }
+            } else {
+                this.foldObj = {
+                    fold: true,
+                    foldText: '展开全文',
+                    iconName: 'arrow-down'
+                }
+            }
         }
     }
 }
@@ -184,7 +225,7 @@ export default {
         .desc-text {
             .title-span {
                 font-size: 18px;
-                color: #00c25b;
+                color: #2d5589;
                 display: inline-block;
                 margin-bottom: 10px;
                 margin-left: 10px;
@@ -214,13 +255,27 @@ export default {
                     display: inline-block;
                     margin-bottom: 10px;
                     margin-left: 10px;
-                    color: #104E8B;
+                    color: @link-blue;
                 }
             }
 
             .intro-content {
                 // padding: 10px 16px;
                 color: rgb(85, 89, 104);
+                .fold-content-text {
+                    display: block;
+                    height: 200px;
+                    overflow-y: hidden;
+                }
+            }
+
+            .unfold {
+                text-align: center;
+                color: @link-blue;
+            }
+
+            .padding-fold {
+                margin-top: 20px;
             }
         }
 

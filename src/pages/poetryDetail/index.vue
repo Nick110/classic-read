@@ -244,7 +244,7 @@ export default {
                     justify-content: space-between;
                     // margin-bottom: 15px;
                     .poet-more {
-                        color: @theme-green;
+                        color: @theme-blue;
                     }
                 }
 

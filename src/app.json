@@ -10,29 +10,29 @@
   ],
   "window": {
     "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#00c25b",
+    "navigationBarBackgroundColor": "#2d5589",
     "navigationBarTitleText": "诗歌",
-    "navigationBarTextStyle": "black",
+    "navigationBarTextStyle": "white",
     "enablePullDownRefresh": true
   },
   "tabBar": {
     "color": "#767676",
-    "selectedColor": "#00c25b",
+    "selectedColor": "#2d5589",
     "list": [{
       "pagePath": "pages/home/main",
       "text": "摘录",
       "iconPath": "/static/img/daily.png",
-      "selectedIconPath": "/static/img/daily-selected.png"
+      "selectedIconPath": "/static/img/daily_selected.png"
     }, {
       "pagePath": "pages/library/main",
       "text": "文库",
       "iconPath": "/static/img/library.png",
-      "selectedIconPath": "/static/img/library-selected.png"
+      "selectedIconPath": "/static/img/library_selected.png"
     }, {
       "pagePath": "pages/my/main",
       "text": "我的",
       "iconPath": "/static/img/my.png",
-      "selectedIconPath": "/static/img/my-selected.png"
+      "selectedIconPath": "/static/img/my_selected.png"
     }]
   }
 }

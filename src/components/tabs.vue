@@ -46,8 +46,8 @@ export default {
         }
 
         .active-tab {
-            color: @theme-green;
-            border-bottom: 2px solid @theme-green;
+            color: @theme-blue;
+            border-bottom: 2px solid @theme-blue;
         }
     }
 </style>
