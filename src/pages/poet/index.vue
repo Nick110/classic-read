@@ -39,7 +39,7 @@
                     <p class="hot-sentence">{{poetry.sentence}}</p>
                 </div>
             </div>
-            <div class="more">
+            <div class="more" @click="seeMore(poet.id)">
                 查看更多>>
             </div>
         </div>
@@ -117,6 +117,7 @@ export default {
                 console.log(poet)
                 this.poet = poet.attributes
                 this.poet.content = poet.attributes.content ? poet.attributes.content.slice(0, -1) : ''
+                this.poet.id = poet.id
                 wx.setNavigationBarTitle({
                     title: poet.attributes.name
                 })
@@ -157,6 +158,12 @@ export default {
         toPoetry(id) {
             wx.navigateTo({
                 url: `/pages/poetryDetail/main?id=${id}`
+            })
+        },
+
+        seeMore(poetId) {
+            wx.navigateTo({
+                url: `/pages/allPoetryOfPoet/main?poetId=${poetId}`
             })
         },
 

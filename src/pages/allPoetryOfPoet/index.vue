@@ -1,12 +1,12 @@
 <template>
-    <div class="tag-detail">
-        <div class="title">{{tag.name}}</div>
-        <div class="tag-desc">{{tag.desc}}</div>
+    <div class="all-poetry">
+        <div class="poet-title">
+            {{poetName}}作品
+        </div>
         <div class="poetry-list">
             <div class="poetry-item" v-for="(poetry, index) in poetryList" :key="index" @click="toPoetryDetail(poetry.id)">
                 <div class="poetry-top">
                     <p class="poetry-name">{{poetry.name}}</p>
-                    <p class="poet">{{'[' + poetry.dynasty + ']'}} {{poetry.author}}</p>
                 </div>
                 <div class="poetry-bottom">{{poetry.sentence}}</div>
             </div>
@@ -16,64 +16,64 @@
 </template>
 
 <script>
-// 存储服务
-var AV = require("leancloud-storage");
+var AV = require('leancloud-storage')
 import {formatSentence} from '../../utils/index.js'
 export default {
     data() {
         return {
-            tag: {},
+            poetId: '',
+            poetName: '',
             poetryList: [],
-            loadingBottom: false,
             currentPage: 1,
-            pageSize: 20,
-            tagId: '',
+            pageSize: 30,
+            loadingBottom: false,
             tip: ''
-        };
+        }
     },
 
     onLoad(option) {
-        this.tagId = option.id
+        this.poetId = option.poetId
         this.currentPage = 1
         this.tip = ''
-        this.getTagInfo(option.id)
-        this.getTagPoetry(option.id, [], this.currentPage, this.pageSize)
+        this.getPoetInfo(option.poetId)
+        this.getPoetry(option.poetId, [], this.currentPage, this.pageSize)
     },
 
     // 监听用户上拉触底事件
     onReachBottom() {
         if(this.tip !== '没有更多了'){
             this.loadingBottom = true
+            this.getPoetry(this.poetId, this.poetryList, this.currentPage, this.pageSize).then((res) => {
+                this.loadingBottom = false
+                if(res == 'nomore') {
+                    this.tip = '没有更多了'
+                }
+            })
         }
-        this.getTagPoetry(this.tagId, this.poetryList, this.currentPage, this.pageSize).then((res) => {
-            this.loadingBottom = false
-            if(res == 'nomore') {
-                this.tip = '没有更多了'
-            }
-        })
+        
     },
 
     methods: {
-        getTagInfo(id) {
-            const tagQuery = new AV.Query("LCTag")
-            tagQuery.get(id).then(tag => {
-                // console.log(tag)
-                this.tag = tag.attributes
+        getPoetInfo(poetId) {
+            const poetQuery = new AV.Query('LCPoet')
+            poetQuery.get(poetId).then(poet => {
+                console.log('poet: ', poet)
+                this.poetName = poet.attributes.name
+                console.log(this.poetName)
             })
         },
 
-        getTagPoetry(id, poetryArr, currentPage, pageSize) {
-            const poetryQuery = new AV.Query("LCPoetry")
-            var tagPointer = AV.Object.createWithoutData('LCTag', id)
-            poetryQuery.equalTo('tags', tagPointer)
+        getPoetry(poetId, poetryArr, currentPage, pageSize) {
+            const poetryQuery = new AV.Query('LCPoetry')
+            var poet = AV.Object.createWithoutData('LCPoet', poetId)
+            poetryQuery.equalTo('poet', poet)
             // 降序
             poetryQuery.addDescending('star')
             // 分页操作
             poetryQuery.limit(pageSize)
             poetryQuery.skip((currentPage - 1) * pageSize)
-            poetryQuery.select(['name', 'content', 'dynasty', 'author'])
+            poetryQuery.select(['name', 'content'])
             return poetryQuery.find().then(poetryList => {
-                console.log(poetryList)
                 if(poetryList.length == 0 || poetryList == []) {
                     return 'nomore'
                 }
@@ -82,10 +82,7 @@ export default {
                     for(var item of poetryList) {
                         let itemObj = {
                             name: item.attributes.name,
-                            dynasty: item.attributes.dynasty,
                             sentence: formatSentence(item.attributes.content),
-                            // 匹配作者中文开头（姓名）
-                            author: item.attributes.author ? item.attributes.author.match(/^[\u4e00-\u9fa5]+/) : '',
                             id: item.id
                         }
                         tempArr.push(itemObj)
@@ -95,6 +92,9 @@ export default {
                     console.log(e)
                 }
                 this.currentPage ++
+                if(poetryList.length < this.pageSize) {
+                    this.tip = '没有更多了'
+                }
             }).catch(err => {
                 console.log(err)
             })
@@ -104,33 +104,27 @@ export default {
             wx.navigateTo({
                 url: `/pages/poetryDetail/main?id=${id}`
             })
-        }
+        },
     }
-};
+}
 </script>
 
 <style lang="less" scoped>
     @import url('../../theme.less');
-    .tag-detail {
-        .title {
-            font-size: 24px;
-            margin-top: 20px;
+    .all-poetry {
+        .poet-title {
+            font-size: 22px;
             text-align: center;
+            height: 60px;
+            line-height: 60px;
+            border-bottom: 1rpx solid #000000;
         }
-
-        .tag-desc {
-            padding: 10px 0 15px 0;
-            text-align: center;
-            color: @second-grey;
-            border-bottom: 1rpx solid #979797;
-        }
-
-        .poetry-list {
+         .poetry-list {
             padding-bottom: 10px;
         }
 
         .poetry-item {
-            border-bottom: 1rpx solid #979797;
+            border-bottom: 1rpx solid #dddee1;
             padding: 8px 20px;
             .poetry-top {
                 display: flex;
@@ -143,11 +137,6 @@ export default {
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
-            }
-
-            .poet {
-                color: @second-grey;
-                font-size: 14px;
             }
 
             .poetry-bottom {

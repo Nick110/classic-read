@@ -3,6 +3,6 @@
     "enablePullDownRefresh": false,
     "disableScroll": true,
     "usingComponents": {
-      "i-button": "../../../static/iView/button/index"
+        
     }
 }

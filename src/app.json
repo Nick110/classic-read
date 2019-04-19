@@ -6,7 +6,8 @@
     "pages/poetryDetail/main",
     "pages/poet/main",
     "pages/tagDetail/main",
-    "pages/recite/main"
+    "pages/recite/main",
+    "pages/allPoetryOfPoet/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",

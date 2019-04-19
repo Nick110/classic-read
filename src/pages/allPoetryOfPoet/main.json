@@ -1,0 +1,7 @@
+{
+    "navigationBarTitleText": "作者",
+    "enablePullDownRefresh": false,
+    "usingComponents": {
+        "i-load-more": "../../../static/iView/load-more/index"
+    }
+}
