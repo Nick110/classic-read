@@ -2,11 +2,11 @@
   "pages": [
     "pages/home/main",
     "pages/library/main",
-    "pages/todolist/main",
     "pages/my/main",
     "pages/poetryDetail/main",
     "pages/poet/main",
-    "pages/tagDetail/main"
+    "pages/tagDetail/main",
+    "pages/recite/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",

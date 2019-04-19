@@ -1,6 +1,7 @@
 {
     "navigationBarTitleText": "一日一赏",
-    "enablePullDownRefresh": true,
+    "enablePullDownRefresh": false,
+    "disableScroll": true,
     "usingComponents": {
       "i-button": "../../../static/iView/button/index"
     }

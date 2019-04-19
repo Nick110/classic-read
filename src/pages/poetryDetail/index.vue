@@ -139,7 +139,7 @@ export default {
             this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
             poetryQuery.startsWith('author', author)
-            poetryQuery.contains('content', verse.split(',')[0])
+            poetryQuery.contains('content', verse)
             poetryQuery.addDescending('star')
             poetryQuery.first().then(poetry => {
                 if(poetry && poetry != undefined) {
