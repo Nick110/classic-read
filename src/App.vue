@@ -1,7 +1,7 @@
 <script>
 /* 这部分相当于原生小程序的 app.js */
 export default {
-  created () {
+  created() {
     // 调用API从本地缓存中获取数据
     /*
      * 平台 api 差异的处理方式:  api 方法统一挂载到 mpvue 名称空间, 平台判断通过 mpvuePlatform 特征字符串
@@ -11,24 +11,29 @@ export default {
      * 支付宝(蚂蚁)：mpvue === my, mpvuePlatform === 'my'
      */
 
-    let logs
-    if (mpvuePlatform === 'my') {
-      logs = mpvue.getStorageSync({key: 'logs'}).data || []
-      logs.unshift(Date.now())
+    let logs;
+    if (mpvuePlatform === "my") {
+      logs = mpvue.getStorageSync({ key: "logs" }).data || [];
+      logs.unshift(Date.now());
       mpvue.setStorageSync({
-        key: 'logs',
+        key: "logs",
         data: logs
-      })
+      });
     } else {
-      logs = mpvue.getStorageSync('logs') || []
-      logs.unshift(Date.now())
-      mpvue.setStorageSync('logs', logs)
+      logs = mpvue.getStorageSync("logs") || [];
+      logs.unshift(Date.now());
+      mpvue.setStorageSync("logs", logs);
     }
   },
-  log () {
-    console.log(`log at:${Date.now()}`)
+
+  globalData: {
+    user: {}
+  },
+
+  log() {
+    console.log(`log at:${Date.now()}`);
   }
-}
+};
 </script>
 
 <style>

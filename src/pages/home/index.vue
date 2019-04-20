@@ -276,7 +276,6 @@ export default {
 <style lang="less">
 @import url("../../theme.less");
 page {
-  background-color: #f0eff4;
   height: 100%;
 }
 .daily {
@@ -310,7 +309,7 @@ page {
       top: 0;
       height: 100%;
       padding: 20px 10px 30px 0;
-      border-right: 1rpx solid #000000;
+      border-right: 1px solid #000000;
       box-sizing: border-box;
       display: flex;
       justify-content: space-between;

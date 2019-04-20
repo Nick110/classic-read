@@ -114,10 +114,10 @@ export default {
         getPoetInfo(id) {
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.get(id).then(poet => {
-                console.log(poet)
-                this.poet = poet.attributes
+                console.log(poet.toJSON())
+                this.poet = poet.toJSON()
                 this.poet.content = poet.attributes.content ? poet.attributes.content.slice(0, -1) : ''
-                this.poet.id = poet.id
+                this.poet.id = poet.toJSON().objectId
                 wx.setNavigationBarTitle({
                     title: poet.attributes.name
                 })
@@ -301,7 +301,7 @@ export default {
                 .hot-list {
                     height: 46px;
                     padding: 8px 0;
-                    border-bottom: 1rpx solid #dddee1;
+                    border-bottom: 1rpx solid @border-grey;
                     color: rgb(85, 89, 104);
                     .hot-name {
                         color: #000;

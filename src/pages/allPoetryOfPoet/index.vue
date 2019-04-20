@@ -57,9 +57,9 @@ export default {
         getPoetInfo(poetId) {
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.get(poetId).then(poet => {
-                console.log('poet: ', poet)
+                // console.log('poet: ', poet)
                 this.poetName = poet.attributes.name
-                console.log(this.poetName)
+                // console.log(this.poetName)
             })
         },
 
@@ -113,7 +113,7 @@ export default {
     @import url('../../theme.less');
     .all-poetry {
         .poet-title {
-            font-size: 22px;
+            font-size: 24px;
             text-align: center;
             height: 60px;
             line-height: 60px;
@@ -124,7 +124,7 @@ export default {
         }
 
         .poetry-item {
-            border-bottom: 1rpx solid #dddee1;
+            border-bottom: 1rpx solid @border-grey;
             padding: 8px 20px;
             .poetry-top {
                 display: flex;

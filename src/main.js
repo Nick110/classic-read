@@ -9,8 +9,8 @@ var APP_ID = 'W5kvrIuH2JRDuv1agWiUF0mc-gzGzoHsz'
 var APP_KEY = 'iXAqToSFmPpQa812w5cSkPtA'
 var AV = require('leancloud-storage')
 AV.init({
-  appId: APP_ID,
-  appKey: APP_KEY
+    appId: APP_ID,
+    appKey: APP_KEY
 })
 
 const app = new Vue(App)

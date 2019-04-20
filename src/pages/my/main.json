@@ -1,4 +1,9 @@
 {
     "navigationBarTitleText": "我",
-    "enablePullDownRefresh": false
+    "enablePullDownRefresh": false,
+    "disableScroll": true,
+    "usingComponents": {
+        "van-button": "../../../static/vant/button/index",
+        "van-icon": "../../../static/vant/icon/index"
+    }
 }

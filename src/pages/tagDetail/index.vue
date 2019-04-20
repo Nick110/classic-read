@@ -122,7 +122,7 @@ export default {
             padding: 10px 0 15px 0;
             text-align: center;
             color: @second-grey;
-            border-bottom: 1rpx solid #979797;
+            border-bottom: 1rpx solid @border-grey;
         }
 
         .poetry-list {
@@ -130,7 +130,7 @@ export default {
         }
 
         .poetry-item {
-            border-bottom: 1rpx solid #979797;
+            border-bottom: 1rpx solid @border-grey;
             padding: 8px 20px;
             .poetry-top {
                 display: flex;
