@@ -35,9 +35,14 @@
                     <no-data v-else name="暂无背景"></no-data>
                 </p>
                 <!-- 朗诵 -->
-                <p class="recite-tab" v-if="current === 'recite'">
+                <div class="recite-tab" v-if="current === 'recite'">
+                    <div class="record-play">
+                        <div class="record-wrapper" @click="playRecord('wxfile://tmp_d6cbbb9706dba3a3b4993f7c7dad0e95.mp3')">
+                            <van-icon name="volume-o" color="#2d5589"></van-icon>
+                        </div>
+                    </div>
                     <no-record :poetryId="poetry.objectId"></no-record>
-                </p>
+                </div>
                 <div class="author-tab" v-if="current === 'author'">
                     <div v-if="poet.desc">
                         <p class="poet-title">
@@ -62,6 +67,7 @@ import Toast from '../../../static/vant/toast/toast'
 import Tabs from '../../components/tabs'
 import NoData from '../../components/noData'
 import noRecord from '../../components/noRecord'
+const innerAudioContext = wx.createInnerAudioContext()
 
 export default {
     data() {
@@ -187,6 +193,20 @@ export default {
             wx.redirectTo({
                 url: `/pages/poet/main?id=${id}`
             })
+        },
+
+        playRecord(src) {
+            innerAudioContext.src = src;
+            innerAudioContext.play()
+            innerAudioContext.onPlay(() => {
+                console.log("开始播放");
+            });
+            innerAudioContext.onEnded(() => {
+                console.log("播放结束");
+            })
+            innerAudioContext.onError((res) => {
+                console.log(res);
+            })
         }
     }
 
@@ -267,6 +287,31 @@ export default {
             z-index: 8;
             background-color: #ffffff;
             padding-top: 50%;
+        }
+
+        .record-play {
+            padding: 0 20px 20px 20px;
+            color: @theme-blue;
+            .popup-top {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                height: 40px;
+                font-size: 18px;
+                .cancel {
+                color: @second-grey;
+                }
+            }
+        }
+
+        .record-wrapper {
+            width: 110px;
+            height: 35px;
+            padding-left: 15px;
+            padding-top: 7px;
+            border-radius: 20px;
+            border: 1rpx solid @theme-blue;
+            box-sizing: border-box;
         }
     }
 </style>

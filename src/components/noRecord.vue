@@ -10,11 +10,6 @@
     </div>
 </template>
 <script>
-// 全局唯一的录音管理器
-const recorderManager = wx.getRecorderManager();
-// 音频
-const innerAudioContext = wx.createInnerAudioContext();
-
 export default {
   data() {
     return {};

@@ -1,7 +1,11 @@
 {
     "navigationBarTitleText": "录音",
     "enablePullDownRefresh": false,
+    "disableScroll": true,
     "usingComponents": {
-        
+        "van-icon": "../../../static/vant/icon/index",
+        "van-popup": "../../../static/vant/popup/index",
+        "van-toast": "../../../static/vant/toast/index",
+        "van-notify": "../../../static/vant/notify/index"
     }
 }
