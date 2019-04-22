@@ -1,7 +1,7 @@
 <template>
     <div class="tag-detail">
         <div class="title">{{tag.name}}</div>
-        <div class="tag-desc">{{tag.desc}}</div>
+        <div class="tag-subtitle">{{tag.subtitle || tag.desc}}</div>
         <div class="poetry-list">
             <div class="poetry-item" v-for="(poetry, index) in poetryList" :key="index" @click="toPoetryDetail(poetry.id)">
                 <div class="poetry-top">
@@ -58,7 +58,7 @@ export default {
             const tagQuery = new AV.Query("LCTag")
             tagQuery.get(id).then(tag => {
                 // console.log(tag)
-                this.tag = tag.attributes
+                this.tag = tag.toJSON()
             })
         },
 
@@ -118,11 +118,12 @@ export default {
             text-align: center;
         }
 
-        .tag-desc {
+        .tag-subtitle {
             padding: 10px 0 15px 0;
             text-align: center;
             color: @second-grey;
             border-bottom: 1rpx solid @border-grey;
+            font-size: 16px;
         }
 
         .poetry-list {

@@ -1,5 +1,6 @@
 <template>
     <div class="account">
+        <van-notify id="custom-selector"/>
         <div class="logged">
             <div class="top">
                 <img class="avatar-bg" src="../../../static/img/my_bg.png">
@@ -9,7 +10,7 @@
                     </div>
                     <div class="user-desc">
                         <p class="nick-name">{{user.nickName}}</p>
-                        <p class="motto">人生得意须尽欢，莫使金樽空对月</p>
+                        <p class="motto">谁知盘中餐，粒粒皆辛苦</p>
                     </div>
                 </div>
                 <!-- 未登录 -->
@@ -18,7 +19,13 @@
                         <img class="avatar-img" src="../../../static/img/wechat.png">
                     </div>
                     <div class="user-desc">
-                        <p class="nick-name" @click="login" open-type="getUserInfo">微信登录</p>
+                        <button
+                            class="nick-name login-btn"
+                            @getuserinfo="bindGetUserInfo"
+                            open-type="getUserInfo"
+                        >微信登录
+                            <van-icon custom-class="arrow-login" name="arrow" color="#000000"></van-icon>
+                        </button>
                         <p class="motto">人生得意须登录，莫使好诗空对月</p>
                     </div>
                 </div>
@@ -84,6 +91,8 @@
 <script>
 var AV = require("leancloud-storage");
 const appInstance = getApp();
+import Notify from "../../../static/vant/notify/notify";
+
 export default {
   data() {
     return {
@@ -117,6 +126,23 @@ export default {
       });
     },
 
+    bindGetUserInfo(e) {
+      const that = this;
+      //用户按了允许授权按钮
+      // console.log(e.mp.detail.userInfo)
+      if (e.mp.detail.userInfo) {
+        that.login();
+      } else {
+        Notify({
+          text: "你取消了授权",
+          duration: 1000,
+          selector: "#custom-selector",
+          backgroundColor: "#FF0000"
+        });
+        return
+      }
+    },
+
     // 登录操作
     login() {
       const that = this;
@@ -132,6 +158,12 @@ export default {
           that.getUserInfo();
           that.loginStatus = true;
           that.getCurrentUser();
+          Notify({
+            text: "登录成功",
+            duration: 1000,
+            selector: "#custom-selector",
+            backgroundColor: "#1989fa"
+          });
         })
         .catch(console.error);
     },
@@ -228,7 +260,8 @@ page {
     .avatar-img {
       width: 50px;
       height: 50px;
-      border-radius: 2px;
+      border-radius: 5px;
+      border: 1rpx solid #dddee1;
     }
 
     .user-desc {
@@ -239,6 +272,23 @@ page {
         margin-bottom: 6px;
         font-size: 20px;
       }
+
+      .login-btn::after {
+        border: 0;
+      }
+
+      .login-btn {
+        background-color: #ffffff;
+        line-height: 1.3;
+        text-align: left;
+        padding-left: 0;
+      }
+
+      .arrow-login {
+          position: relative;
+          top: 3px;
+      }
+
       .motto {
         font-size: 14px;
         color: @theme-grey;
@@ -261,7 +311,7 @@ page {
       position: relative;
       .list-item-icon {
         position: relative;
-        top: 2px;
+        top: 3px;
       }
       .list-item-name {
         display: inline-block;

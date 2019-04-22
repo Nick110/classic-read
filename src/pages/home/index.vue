@@ -124,7 +124,7 @@ export default {
     toDetail(verse, author) {
       wx.navigateTo({
         url: `/pages/poetryDetail/main?verse=${
-          verse.split(",")[0]
+          verse.substr(0, 7)
         }&author=${author}`
       });
     },

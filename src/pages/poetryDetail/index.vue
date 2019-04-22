@@ -1,6 +1,6 @@
 <template>
     <div class="poetry-detail">
-        <i-toast id="toast"/>
+        <van-toast id="van-toast" />
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
             <p class="author">{{'「'+ poetry.dynasty + '」'}}<span v-if="poet.desc">{{poet.name}}</span></p>
@@ -9,10 +9,6 @@
                     {{poetry.content}}
                 </text>
             </div>
-            <!-- <i-spin i-class="loading" custom fix size="large" v-if="loading">
-                <i-icon type="refresh" size="30" i-class="icon-load"></i-icon>
-                <view class="loading-view">加载中...</view>
-            </i-spin> -->
             <div class="load-more-wrapper" v-if="loading">
                 <i-load-more i-class="load-more"/>
             </div>
@@ -38,9 +34,18 @@
                     </text>
                     <no-data v-else name="暂无背景"></no-data>
                 </p>
+                <!-- 朗诵 -->
+                <p class="recite-tab" v-if="current === 'recite'">
+                    <no-record :poetryId="poetry.objectId"></no-record>
+                </p>
                 <div class="author-tab" v-if="current === 'author'">
                     <div v-if="poet.desc">
-                        <p class="poet-title"><span>作者</span><span class="poet-more" @click="toPoet(poet.id)">更多<i-icon type="enter" size="18" /></span></p>
+                        <p class="poet-title">
+                            <span>作者</span>
+                            <span class="poet-more" @click="toPoet(poet.id)">
+                                更多<van-icon name="arrow" custom-style="position: relative; top: 5rpx;"/>
+                            </span>
+                        </p>
                         <p class="poet-desc">{{poet.desc}}</p>
                     </div>
                     <no-data v-else name="暂无作者信息"></no-data>
@@ -53,9 +58,11 @@
 <script>
 // 存储服务
 var AV = require('leancloud-storage')
-const { $Toast } = require("../../../static/iView/base/index")
+import Toast from '../../../static/vant/toast/toast'
 import Tabs from '../../components/tabs'
 import NoData from '../../components/noData'
+import noRecord from '../../components/noRecord'
+
 export default {
     data() {
         return {
@@ -80,6 +87,10 @@ export default {
                     current: 'about'
                 },
                 {
+                    title: '朗诵',
+                    current: 'recite'
+                },
+                {
                     title: '作者',
                     current: 'author'
                 }
@@ -89,7 +100,8 @@ export default {
 
     components: {
         Tabs,
-        NoData
+        NoData,
+        noRecord
     },
 
     onLoad(option) {
@@ -108,7 +120,7 @@ export default {
             poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
                     console.log('poetry: ', poetry)
-                    this.poetry = poetry.attributes
+                    this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi ? poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n') : ''
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
                     // 如果诗人存在
@@ -124,11 +136,7 @@ export default {
                     }
                     this.loading = false 
                 } else {
-                    $Toast({
-                        content: "该诗句不存在！",
-                        duration: 1,
-                        type: "warning"
-                    });
+                    Toast.fail('该诗句不存在');
                 }
             }).catch(err => {
                 console.log(err)
@@ -144,7 +152,7 @@ export default {
             poetryQuery.first().then(poetry => {
                 if(poetry && poetry != undefined) {
                     console.log('poetry: ', poetry)
-                    this.poetry = poetry.attributes
+                    this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi && poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
                     // 如果诗人存在
@@ -160,11 +168,7 @@ export default {
                     }
                     this.loading = false 
                 } else {
-                    $Toast({
-                        content: "该诗句不存在！",
-                        duration: 1,
-                        type: "warning"
-                    });
+                    Toast.fail('该诗句不存在');
                 }
             }).catch(err => {
                 console.log(err)

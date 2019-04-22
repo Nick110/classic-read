@@ -1,11 +1,8 @@
 {
-    "enablePullDownRefresh": true,
+    "enablePullDownRefresh": false,
     "usingComponents": {
-        "i-toast": "../../../static/iView/toast/index",
-        "i-tabs": "../../../static/iView/tabs/index",
-        "i-tab": "../../../static/iView/tab/index",
-        "i-spin": "../../../static/iView/spin/index",
-        "i-icon": "../../../static/iView/icon/index",
-        "i-load-more": "../../../static/iView/load-more/index"
+        "i-load-more": "../../../static/iView/load-more/index",
+        "van-icon": "../../../static/vant/icon/index",
+        "van-toast": "../../../static/vant/toast/index"
     }
 }
