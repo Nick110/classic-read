@@ -39,12 +39,14 @@
                     <div class="record-list-wrapper" v-if="recordListExist">
                         <div class="record-play" v-for="(record, index) in recordList" :key="index">
                             <div class="user-wrapper">
-                                <div>
-                                    <!-- <img :src="" alt=""> -->
-                                </div>
+                                <img class="avatar-img" :src="record.user.avatarUrl">
+                                <span class="nickName-span">{{record.user.nickName}}</span>
                             </div>
-                            <div class="record-wrapper" @click="playRecord()">
+                            <div class="record-wrapper" @click="playRecord(record.file.url)">
                                 <van-icon name="volume-o" color="#2d5589"></van-icon>
+                            </div>
+                            <div class="record-text">
+                                {{record.text}}
                             </div>
                         </div>
                     </div>
@@ -132,6 +134,10 @@ export default {
         this.current = 'translate'
     },
 
+    onHide() {
+        innerAudioContext.destroy()
+    },
+
     methods: {
         getOnePoetryById(id) {
             this.loading = true
@@ -202,8 +208,8 @@ export default {
             const poetry = AV.Object.createWithoutData('LCPoetry', this.poetry.objectId)
             recordQuery.equalTo('poetry', poetry)
             // include:同时返回外键的详细信息
-            // recordQuery.include('user')
-            // recordQuery.include('file.url')
+            recordQuery.include('user')
+            recordQuery.include('file')
             recordQuery.find().then(recordList => {
                 if(recordList && recordList.length != 0) {
                     this.recordListExist = true
@@ -211,9 +217,6 @@ export default {
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
-                        AV.User.get(obj.user.objectId).then(user => {
-                            console.log('user:', user)
-                        })
                         arr.push(obj)
                     }
                     this.recordList = arr
@@ -315,9 +318,9 @@ export default {
                 .to-record {
                     width: 35px;
                     height: 35px;
-                    position: absolute;
-                    right: 0;
-                    bottom: 30px;
+                    position: fixed;
+                    right: 20px;
+                    bottom: 40px;
                     border-radius: 50%;
                     border: 1px solid @theme-blue;
                     display: flex;
@@ -382,13 +385,39 @@ export default {
         }
 
         .record-wrapper {
-            width: 110px;
+            width: 130px;
             height: 35px;
             padding-left: 15px;
             padding-top: 7px;
             border-radius: 20px;
             border: 1rpx solid @theme-blue;
             box-sizing: border-box;
+            margin-left: 20px;
+        }
+
+        .user-wrapper {
+            padding: 0 5px;
+            margin-bottom: 10px;
+            .avatar-img {
+                width: 30px;
+                height: 30px;
+                vertical-align: middle;
+                border: 1rpx solid @second-grey;
+                border-radius: 3px;
+                margin-right: 5px;
+            }
+
+            .nickName-span {
+                color: @second-grey;
+                font-size: 16px;
+            }
+        }
+
+        .record-text {
+            margin-top: 10px;
+            color: #000;
+            font-size: 17px;
+            padding: 0 20px;
         }
     }
 </style>

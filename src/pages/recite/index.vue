@@ -197,6 +197,7 @@ export default {
         //错误回调
         recorderManager.onError(res => {
           console.log(res);
+          Toast.fail("系统出现了问题~")
         });
       }
     },
