@@ -123,9 +123,10 @@ export default {
 
     toDetail(verse, author) {
       wx.navigateTo({
-        url: `/pages/poetryDetail/main?verse=${
-          verse.substr(0, 7)
-        }&author=${author}`
+        // url: `/pages/poetryDetail/main?verse=${
+        //   verse.substr(0, 7)
+        // }&author=${author}`
+        url: `/pages/poetryDetail/main?id=${'5c77c67d303f390037ba42be'}`
       });
     },
 

@@ -90,14 +90,14 @@
 
 <script>
 var AV = require("leancloud-storage");
-const appInstance = getApp();
 import Notify from "../../../static/vant/notify/notify";
 
 export default {
   data() {
     return {
       user: {},
-      loginStatus: ""
+      loginStatus: "",
+      needBack: false
     };
   },
 
@@ -107,7 +107,10 @@ export default {
   // mounted：你如果从页面B返回页面A，页面A的mounted钩子不会被触发，因为页面没有被重新加载，
   // 如果有需要每次页面展示都要调用的逻辑，使用小程序的onShow代替吧
 
-  onLoad() {
+  onLoad(option) {
+    if (option.back) {
+      this.needBack = true;
+    }
     wx.showLoading({
       title: "加载中"
     });
@@ -131,7 +134,19 @@ export default {
       //用户按了允许授权按钮
       // console.log(e.mp.detail.userInfo)
       if (e.mp.detail.userInfo) {
-        that.login();
+        that.login().then(() => {
+          const needBack = wx.getStorageSync("needBack");
+          if (needBack) {
+            wx.navigateTo({
+              url: needBack.backUrl,
+              success: function() {
+                wx.removeStorage({
+                  key: "needBack"
+                });
+              }
+            });
+          }
+        });
       } else {
         Notify({
           text: "你取消了授权",
@@ -139,14 +154,14 @@ export default {
           selector: "#custom-selector",
           backgroundColor: "#FF0000"
         });
-        return
+        return;
       }
     },
 
     // 登录操作
     login() {
       const that = this;
-      AV.User.loginWithWeapp()
+      return AV.User.loginWithWeapp()
         .then(user => {
           console.log(user.toJSON());
           wx.setStorage({
@@ -285,8 +300,8 @@ page {
       }
 
       .arrow-login {
-          position: relative;
-          top: 3px;
+        position: relative;
+        top: 3px;
       }
 
       .motto {

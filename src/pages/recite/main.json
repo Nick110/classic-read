@@ -6,6 +6,8 @@
         "van-icon": "../../../static/vant/icon/index",
         "van-popup": "../../../static/vant/popup/index",
         "van-toast": "../../../static/vant/toast/index",
-        "van-notify": "../../../static/vant/notify/index"
+        "van-notify": "../../../static/vant/notify/index",
+        "van-dialog": "../../../static/vant/dialog/index",
+        "van-field": "../../../static/vant/field/index"
     }
 }

@@ -36,12 +36,22 @@
                 </p>
                 <!-- 朗诵 -->
                 <div class="recite-tab" v-if="current === 'recite'">
-                    <div class="record-play">
-                        <div class="record-wrapper" @click="playRecord('wxfile://tmp_d6cbbb9706dba3a3b4993f7c7dad0e95.mp3')">
-                            <van-icon name="volume-o" color="#2d5589"></van-icon>
+                    <div class="record-list-wrapper" v-if="recordListExist">
+                        <div class="record-play" v-for="(record, index) in recordList" :key="index">
+                            <div class="user-wrapper">
+                                <div>
+                                    <!-- <img :src="" alt=""> -->
+                                </div>
+                            </div>
+                            <div class="record-wrapper" @click="playRecord()">
+                                <van-icon name="volume-o" color="#2d5589"></van-icon>
+                            </div>
                         </div>
                     </div>
-                    <no-record :poetryId="poetry.objectId"></no-record>
+                    <div class="to-record" @click="toRecite" v-if="recordListExist">
+                        <img class="record-img" src="../../../static/img/recite.png">
+                    </div>
+                    <no-record v-else :poetryId="poetry.objectId"></no-record>
                 </div>
                 <div class="author-tab" v-if="current === 'author'">
                     <div v-if="poet.desc">
@@ -76,9 +86,11 @@ export default {
             author: '',  // 作者
             poetry: {},
             poet: {},
+            recordList: [],
             current: 'translate',
             loading: true,
             poetNotFound: false,
+            recordListExist: false,
             tabsArr: [
                 {
                     title: '译注',
@@ -111,6 +123,7 @@ export default {
     },
 
     onLoad(option) {
+        this.recordListExist = false
         if(option.id) {
             this.getOnePoetryById(option.id)
         } else {
@@ -125,7 +138,7 @@ export default {
             const poetryQuery = new AV.Query('LCPoetry')
             poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
-                    console.log('poetry: ', poetry)
+                    // console.log('poetry: ', poetry)
                     this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi ? poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n') : ''
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
@@ -133,14 +146,15 @@ export default {
                     if(poetry.attributes.poet) {
                         let poetQuery = new AV.Query('LCPoet')
                         poetQuery.get(poetry.attributes.poet.id).then(poet => {
-                            console.log('poet: ', poet)
+                            // console.log('poet: ', poet)
                             this.poet = poet.attributes
                             this.poet.id = poet.id
                         })
                     } else {
                         this.poet = {}
                     }
-                    this.loading = false 
+                    this.loading = false
+                    this.getRecordList()
                 } else {
                     Toast.fail('该诗句不存在');
                 }
@@ -157,7 +171,7 @@ export default {
             poetryQuery.addDescending('star')
             poetryQuery.first().then(poetry => {
                 if(poetry && poetry != undefined) {
-                    console.log('poetry: ', poetry)
+                    // console.log('poetry: ', poetry)
                     this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi && poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析)[一|二|三]?\n\n/g, '赏析\n')
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
@@ -165,14 +179,15 @@ export default {
                     if(poetry.attributes.poet) {
                         let poetQuery = new AV.Query('LCPoet')
                         poetQuery.get(poetry.attributes.poet.id).then(poet => {
-                            console.log('poet: ', poet)
+                            // console.log('poet: ', poet)
                             this.poet = poet.attributes
                             this.poet.id = poet.id
                         })
                     } else {
                         this.poet = {}
                     }
-                    this.loading = false 
+                    this.loading = false
+                    this.getRecordList()
                 } else {
                     Toast.fail('该诗句不存在');
                 }
@@ -181,8 +196,43 @@ export default {
             })
         },
 
+        // 获取朗诵列表
+        getRecordList() {
+            const recordQuery = new AV.Query('LCRecord')
+            const poetry = AV.Object.createWithoutData('LCPoetry', this.poetry.objectId)
+            recordQuery.equalTo('poetry', poetry)
+            // include:同时返回外键的详细信息
+            // recordQuery.include('user')
+            // recordQuery.include('file.url')
+            recordQuery.find().then(recordList => {
+                if(recordList && recordList.length != 0) {
+                    this.recordListExist = true
+                     // console.log(recordList)
+                    let arr = []
+                    for(let record of recordList) {
+                        let obj = record.toJSON()
+                        AV.User.get(obj.user.objectId).then(user => {
+                            console.log('user:', user)
+                        })
+                        arr.push(obj)
+                    }
+                    this.recordList = arr
+                    console.log(this.recordList)
+                } else {
+                    this.recordListExist = false
+                }
+               
+            }).catch(err => console.log(err))
+        },
+
         switchTab(tab) {
             this.current = tab
+        },
+
+        toRecite() {
+            wx.navigateTo({
+                url: `/pages/recite/main?poetryId=${this.poetry.objectId}`
+            });
         },
         
         // handleChange (e) {
@@ -260,6 +310,31 @@ export default {
                 padding-bottom: 25px;
             }
 
+            .recite-tab {
+                position: relative;
+                .to-record {
+                    width: 35px;
+                    height: 35px;
+                    position: absolute;
+                    right: 0;
+                    bottom: 30px;
+                    border-radius: 50%;
+                    border: 1px solid @theme-blue;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 3;
+                    .record-img {
+                        width: 70%;
+                        height: 70%;
+                    }
+                }
+
+                .record-list-wrapper {
+                    padding: 20px 0;
+                }
+            }
+
             .author-tab {
                 padding: 25px 0;
 
@@ -290,8 +365,10 @@ export default {
         }
 
         .record-play {
-            padding: 0 20px 20px 20px;
             color: @theme-blue;
+            border-bottom: 1px solid @border-grey;
+            padding: 15px 0;
+            box-sizing: border-box;
             .popup-top {
                 display: flex;
                 justify-content: space-between;

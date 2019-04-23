@@ -2,6 +2,7 @@
     <div class="recite">
         <van-toast id="van-toast"/>
         <van-notify id="custom-selector"/>
+        <van-dialog id="van-dialog"/>
         <img class="recite-bg" src="../../../static/img/recite_bg.png">
         <div class="poetry">
             <p class="title">{{poetry.name}}</p>
@@ -33,7 +34,7 @@
             </view>
             <div class="record-operation">
                 <p @click="cancelRecord">取消</p>
-                <div class="img-wrapper" @click="startRecord">
+                <div class="img-wrapper" @click="checkLogin">
                     <img
                         class="recite-img"
                         :src="recording ? '/static/img/recite.png' : '/static/img/recite_black.png'"
@@ -57,6 +58,18 @@
                     <div class="record-wrapper" @click="playRecord">
                         <van-icon name="volume-o" color="#2d5589"></van-icon>
                     </div>
+                    <div class="text-wrapper">
+                        <van-field
+                            textValue="message"
+                            type="textarea"
+                            placeholder="说点什么吧（可选）"
+                            autosize
+                            border="true"
+                            clearable="true"
+                            placeholder-style="color: #adadaddc"
+                            @blur="finishInput"
+                        />
+                    </div>
                 </div>
             </van-popup>
         </div>
@@ -67,7 +80,8 @@
 const AV = require("leancloud-storage");
 import Toast from "../../../static/vant/toast/toast";
 import Notify from "../../../static/vant/notify/notify";
-// es5
+import Dialog from "../../../static/vant/dialog/dialog";
+
 // 全局唯一的录音管理器
 const recorderManager = wx.getRecorderManager();
 // 音频
@@ -76,6 +90,7 @@ const innerAudioContext = wx.createInnerAudioContext();
 export default {
   data() {
     return {
+      poetryId: "",
       poetry: {},
       poet: {},
       recording: false,
@@ -84,12 +99,16 @@ export default {
       // 录音开始时间
       recordStartTime: 0,
       // 录音结束时间
-      recordEndTime: 0
+      recordEndTime: 0,
+      loginStatus: false,
+      textValue: ''
     };
   },
 
   onLoad(option) {
-    this.getPoetry("5c77c6a4303f390037ba4c1f");
+    this.poetryId = option.poetryId;
+    this.getPoetry(option.poetryId);
+    // this.relevance();
   },
 
   methods: {
@@ -110,27 +129,76 @@ export default {
         });
     },
 
+    // 检查登录状态
+    checkLogin() {
+      if (this.recording) {
+        return false;
+      } else {
+        const that = this;
+        wx.checkSession({
+          success: function() {
+            console.log("已登录");
+            that.loginStatus = true;
+          },
+          fail: function() {
+            //不存在登陆态
+            console.log("未登录");
+            wx.hideLoading();
+            that.loginStatus = false;
+            Dialog.confirm({
+              title: "登录",
+              message: "你还未登录，需要登录才能朗诵"
+            })
+              .then(() => {
+                // on confirm
+                wx.switchTab({
+                  url: `/pages/my/main`,
+                  success: () => {
+                    wx.setStorage({
+                      key: "needBack",
+                      data: {
+                        backUrl: "/pages/recite/main?poetryId=099987"
+                      }
+                    });
+                  }
+                });
+              })
+              .catch(() => {
+                // on cancel
+                console.log("取消");
+                return;
+              });
+          },
+
+          complete: function() {
+            that.startRecord();
+          }
+        });
+      }
+    },
     // 录音
     startRecord() {
-      const options = {
-        duration: 300000, //指定录音的时长，单位 ms
-        sampleRate: 16000, //采样率
-        numberOfChannels: 1, //录音通道数
-        encodeBitRate: 96000, //编码码率
-        format: "mp3", //音频格式，有效值 aac/mp3
-        frameSize: 50 //指定帧大小，单位 KB
-      };
-      //开始录音
-      recorderManager.start(options);
-      recorderManager.onStart(() => {
-        this.recordStartTime = Date.parse(new Date());
-        console.log("录音开始");
-        this.recording = true;
-      });
-      //错误回调
-      recorderManager.onError(res => {
-        console.log(res);
-      });
+      if (this.loginStatus) {
+        const options = {
+          duration: 300000, //指定录音的时长，单位 ms
+          sampleRate: 16000, //采样率
+          numberOfChannels: 1, //录音通道数
+          encodeBitRate: 96000, //编码码率
+          format: "mp3", //音频格式，有效值 aac/mp3
+          frameSize: 50 //指定帧大小，单位 KB
+        };
+        //开始录音
+        recorderManager.start(options);
+        recorderManager.onStart(() => {
+          this.recordStartTime = Date.parse(new Date());
+          console.log("录音开始");
+          this.recording = true;
+        });
+        //错误回调
+        recorderManager.onError(res => {
+          console.log(res);
+        });
+      }
     },
 
     finishRecord() {
@@ -176,15 +244,50 @@ export default {
       });
     },
 
+    // 关联record表到user和file
+    relevance(file) {
+      const record = new AV.Object("LCRecord");
+      const currentUser = AV.User.current();
+      const poetry = AV.Object.createWithoutData(
+        "LCPoetry",
+        this.poetryId
+      );
+      // console.log(currentUser);
+      record.set("file", file);
+      record.set("user", currentUser);
+      record.set("poetry", poetry);
+      record.set('text', this.textValue);
+      record
+        .save()
+        .then(() => {
+          Notify({
+            text: "提交成功",
+            duration: 1000,
+            selector: "#custom-selector",
+            backgroundColor: "#1989fa"
+          });
+        })
+        .catch(error => {
+          console.error(error);
+          Notify({
+            text: "上传错误",
+            duration: 1000,
+            selector: "#custom-selector",
+            backgroundColor: "#FF0000"
+          });
+        });
+    },
+
     submitRecord() {
       const that = this;
       wx.saveFile({
         tempFilePath: that.tempFilePath,
         success(res) {
           const savedFilePath = res.savedFilePath;
-          console.log("tempFilePath: ", that.tempFilePath);
-          console.log("savedFilePath: ", savedFilePath);
-          new AV.File("luyin", {
+          const currentUser = AV.User.current().toJSON();
+        //   console.log("tempFilePath: ", that.tempFilePath);
+        //   console.log("savedFilePath: ", savedFilePath);
+          new AV.File(`${that.poetry.name}-${currentUser.nickName}`, {
             blob: {
               uri: savedFilePath
             }
@@ -193,25 +296,26 @@ export default {
             .save()
             // 上传成功
             .then(file => {
-              文件保存成功;
-              this.popupShow = false;
-              Notify({
-                text: "提交成功",
-                duration: 1000,
-                selector: "#custom-selector",
-                backgroundColor: "#1989fa"
-              });
-              console.log(file.url());
+              //   文件保存成功;
+              that.popupShow = false;
+            //   Notify({
+            //     text: "提交成功",
+            //     duration: 1000,
+            //     selector: "#custom-selector",
+            //     backgroundColor: "#1989fa"
+            //   });
+              console.log(file);
+              that.relevance(file)
             })
             // 上传发生异常
             .catch(error => {
               console.error(error);
-              Notify({
-                text: "网络错误",
-                duration: 1000,
-                selector: "#custom-selector",
-                backgroundColor: "#FF0000"
-              });
+            //   Notify({
+            //     text: "网络错误",
+            //     duration: 1000,
+            //     selector: "#custom-selector",
+            //     backgroundColor: "#FF0000"
+            //   });
             });
         }
       });
@@ -224,6 +328,17 @@ export default {
 
     onClose() {
       this.popupShow = false;
+    },
+
+    // onChange(event) {
+    //     // event.detail 为当前输入的值
+    //     console.log(event.mp.detail);
+    //     console.log(this.textValue);
+    // },
+
+    finishInput(event) {
+        console.log(event.mp.detail);
+        this.textValue = event.mp.detail.value
     }
   }
 };
@@ -251,6 +366,8 @@ page {
   .poetry {
     z-index: 2;
     padding: 20px 10px;
+    overflow: scroll;
+    height: 480px;
     .title {
       font-size: 23px;
       margin-bottom: 8px;
@@ -311,6 +428,10 @@ page {
         .cancel {
           color: @second-grey;
         }
+      }
+
+      .text-wrapper {
+          padding: 20px 0;
       }
     }
 
