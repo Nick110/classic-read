@@ -42,16 +42,17 @@
                                 <img class="avatar-img" :src="record.user.avatarUrl">
                                 <span class="nickName-span">{{record.user.nickName}}</span>
                             </div>
-                            <div class="record-wrapper" @click="playRecord(record.file.url)">
-                                <van-icon name="volume-o" color="#2d5589"></van-icon>
-                            </div>
                             <div class="record-text">
                                 {{record.text}}
+                            </div>
+                            <div class="record-wrapper" @click="playRecord(record.file.url)">
+                                <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
+                                <span class="duration-span" v-if="record.duration">{{record.duration}}</span>
                             </div>
                         </div>
                     </div>
                     <div class="to-record" @click="toRecite" v-if="recordListExist">
-                        <img class="record-img" src="../../../static/img/recite.png">
+                        <img class="record-img" src="../../../static/img/microphone.png">
                     </div>
                     <no-record v-else :poetryId="poetry.objectId"></no-record>
                 </div>
@@ -79,6 +80,7 @@ import Toast from '../../../static/vant/toast/toast'
 import Tabs from '../../components/tabs'
 import NoData from '../../components/noData'
 import noRecord from '../../components/noRecord'
+import ms2Minutes from '../../utils/ms2Minutes.js'
 const innerAudioContext = wx.createInnerAudioContext()
 
 export default {
@@ -93,6 +95,7 @@ export default {
             loading: true,
             poetNotFound: false,
             recordListExist: false,
+            isReciteBack: false,
             tabsArr: [
                 {
                     title: '译注',
@@ -125,7 +128,6 @@ export default {
     },
 
     onLoad(option) {
-        this.recordListExist = false
         if(option.id) {
             this.getOnePoetryById(option.id)
         } else {
@@ -134,11 +136,39 @@ export default {
         this.current = 'translate'
     },
 
+    onShow() {
+        const isReciteBack = wx.getStorageSync('isReciteBack')
+        if(isReciteBack) {
+            this.getRecordList().then(() => {
+                wx.setStorageSync('isReciteBack', false)
+            })
+        }
+    },
+
     onHide() {
-        innerAudioContext.destroy()
+        console.log('hide')
+        innerAudioContext.stop()
+    },
+
+    // 从当前页回到诗歌页
+    onUnload() {
+        console.log('unload')
+        innerAudioContext.stop()
     },
 
     methods: {
+        // ms2Minutes(ms) {
+        //     // let ms = parseInt(msStr)
+        //     // 得到分
+        //     let minutes = Math.floor(ms / 6000)
+        //     let leftMs = ms % 6000
+        //     // 得到秒
+        //     let seconds = leftMs / 1000
+        //     let minutesStr = minutes < 10 ? ('0' + minutes) : minutes
+        //     let secondsStr = seconds < 10 ? ('0' + seconds) : seconds
+        //     return `${minutesStr}′${secondsStr}″`
+        // },
+
         getOnePoetryById(id) {
             this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
@@ -210,17 +240,19 @@ export default {
             // include:同时返回外键的详细信息
             recordQuery.include('user')
             recordQuery.include('file')
-            recordQuery.find().then(recordList => {
+            recordQuery.descending('createdAt')
+            return recordQuery.find().then(recordList => {
                 if(recordList && recordList.length != 0) {
                     this.recordListExist = true
                      // console.log(recordList)
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
+                        obj.duration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration) : ''
                         arr.push(obj)
                     }
                     this.recordList = arr
-                    console.log(this.recordList)
+                    console.log(recordList)
                 } else {
                     this.recordListExist = false
                 }
@@ -261,9 +293,7 @@ export default {
                 console.log(res);
             })
         }
-    }
-
-    
+    } 
 }
 </script>
 
@@ -316,13 +346,14 @@ export default {
             .recite-tab {
                 position: relative;
                 .to-record {
-                    width: 35px;
-                    height: 35px;
+                    width: 40px;
+                    height: 40px;
                     position: fixed;
                     right: 20px;
                     bottom: 40px;
                     border-radius: 50%;
-                    border: 1px solid @theme-blue;
+                    border: 1px solid @theme-red;
+                    background-color: #ffffff;
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -379,7 +410,7 @@ export default {
                 height: 40px;
                 font-size: 18px;
                 .cancel {
-                color: @second-grey;
+                    color: @second-grey;
                 }
             }
         }
@@ -387,12 +418,19 @@ export default {
         .record-wrapper {
             width: 130px;
             height: 35px;
-            padding-left: 15px;
-            padding-top: 7px;
+            padding: 0 15px;
+            // padding-top: 13rpx;
+            line-height: 35px;
             border-radius: 20px;
-            border: 1rpx solid @theme-blue;
+            border: 1px solid @theme-blue;
             box-sizing: border-box;
             margin-left: 20px;
+            display: flex;
+            justify-content: space-between;
+            .duration-span {
+                color: @second-grey;
+                font-size: 14px;
+            }
         }
 
         .user-wrapper {
@@ -404,20 +442,20 @@ export default {
                 vertical-align: middle;
                 border: 1rpx solid @second-grey;
                 border-radius: 3px;
-                margin-right: 5px;
+                margin-right: 10px;
             }
 
             .nickName-span {
-                color: @second-grey;
+                color: @theme-grey;
                 font-size: 16px;
             }
         }
 
         .record-text {
-            margin-top: 10px;
+            margin: 10px 0;
             color: #000;
-            font-size: 17px;
-            padding: 0 20px;
+            font-size: 16px;
+            padding: 0 30px;
         }
     }
 </style>

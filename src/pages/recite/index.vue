@@ -1,7 +1,7 @@
 <template>
     <div class="recite">
         <van-toast id="van-toast"/>
-        <van-notify id="custom-selector"/>
+        <van-notify id="custom-selector" />
         <van-dialog id="van-dialog"/>
         <img class="recite-bg" src="../../../static/img/recite_bg.png">
         <div class="poetry">
@@ -62,12 +62,13 @@
                         <van-field
                             textValue="message"
                             type="textarea"
-                            placeholder="说点什么吧（可选）"
+                            placeholder="说点什么吧（可选，100字以内）"
                             autosize
                             border="true"
                             clearable="true"
                             placeholder-style="color: #adadaddc"
                             @blur="finishInput"
+                            maxlength="100"
                         />
                     </div>
                 </div>
@@ -101,14 +102,13 @@ export default {
       // 录音结束时间
       recordEndTime: 0,
       loginStatus: false,
-      textValue: ''
+      textValue: ""
     };
   },
 
   onLoad(option) {
     this.poetryId = option.poetryId;
     this.getPoetry(option.poetryId);
-    // this.relevance();
   },
 
   methods: {
@@ -157,7 +157,7 @@ export default {
                     wx.setStorage({
                       key: "needBack",
                       data: {
-                        backUrl: "/pages/recite/main?poetryId=099987"
+                        backUrl: `/pages/recite/main?poetryId=${that.poetryId}`
                       }
                     });
                   }
@@ -197,7 +197,7 @@ export default {
         //错误回调
         recorderManager.onError(res => {
           console.log(res);
-          Toast.fail("系统出现了问题~")
+          Toast.fail("系统出现了问题~");
         });
       }
     },
@@ -249,15 +249,16 @@ export default {
     relevance(file) {
       const record = new AV.Object("LCRecord");
       const currentUser = AV.User.current();
-      const poetry = AV.Object.createWithoutData(
-        "LCPoetry",
-        this.poetryId
-      );
+      const poetry = AV.Object.createWithoutData("LCPoetry", this.poetryId);
+      // 录音时长
+      const recordDuration = this.recordEndTime - this.recordStartTime;
+
       // console.log(currentUser);
       record.set("file", file);
       record.set("user", currentUser);
       record.set("poetry", poetry);
-      record.set('text', this.textValue);
+      record.set("text", this.textValue);
+      record.set('duration', recordDuration)
       record
         .save()
         .then(() => {
@@ -286,8 +287,8 @@ export default {
         success(res) {
           const savedFilePath = res.savedFilePath;
           const currentUser = AV.User.current().toJSON();
-        //   console.log("tempFilePath: ", that.tempFilePath);
-        //   console.log("savedFilePath: ", savedFilePath);
+          //   console.log("tempFilePath: ", that.tempFilePath);
+          //   console.log("savedFilePath: ", savedFilePath);
           new AV.File(`${that.poetry.name}-${currentUser.nickName}`, {
             blob: {
               uri: savedFilePath
@@ -299,27 +300,41 @@ export default {
             .then(file => {
               //   文件保存成功;
               that.popupShow = false;
-            //   Notify({
-            //     text: "提交成功",
-            //     duration: 1000,
-            //     selector: "#custom-selector",
-            //     backgroundColor: "#1989fa"
-            //   });
               console.log(file);
-              that.relevance(file)
+              that.relevance(file);
+              wx.removeSavedFile({
+                filePath: savedFilePath,
+                complete(res) {
+                  console.log("删除" + res);
+                  that.backtoPoetryDetail();
+                }
+              });
             })
             // 上传发生异常
             .catch(error => {
               console.error(error);
-            //   Notify({
-            //     text: "网络错误",
-            //     duration: 1000,
-            //     selector: "#custom-selector",
-            //     backgroundColor: "#FF0000"
-            //   });
+              Notify({
+                text: "提交发生异常",
+                duration: 1000,
+                selector: "#custom-selector",
+                backgroundColor: "#FF0000"
+              });
             });
         }
       });
+    },
+
+    // 返回诗歌页
+    backtoPoetryDetail() {
+        wx.setStorage({
+            key: 'isReciteBack',
+            data: true,
+            success: function() {
+                wx.navigateBack({
+                    delta: 1
+                });
+            }
+        })
     },
 
     cancelSubmit() {
@@ -338,8 +353,8 @@ export default {
     // },
 
     finishInput(event) {
-        console.log(event.mp.detail);
-        this.textValue = event.mp.detail.value
+      console.log(event.mp.detail);
+      this.textValue = event.mp.detail.value;
     }
   }
 };
@@ -427,12 +442,12 @@ page {
         height: 40px;
         font-size: 18px;
         .cancel {
-          color: @second-grey;
+          color: @theme-grey;
         }
       }
 
       .text-wrapper {
-          padding: 20px 0;
+        padding: 20px 0;
       }
     }
 
