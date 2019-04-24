@@ -3,6 +3,7 @@
     "usingComponents": {
         "i-load-more": "../../../static/iView/load-more/index",
         "van-icon": "../../../static/vant/icon/index",
-        "van-toast": "../../../static/vant/toast/index"
+        "van-toast": "../../../static/vant/toast/index",
+        "van-popup": "../../../static/vant/popup/index"
     }
 }

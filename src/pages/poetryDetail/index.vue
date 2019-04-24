@@ -36,6 +36,45 @@
                 </p>
                 <!-- 朗诵 -->
                 <div class="recite-tab" v-if="current === 'recite'">
+                    <van-popup
+                        :show="popupShow"
+                        position="bottom"
+                        overlay="false"
+                        @close="onClose"
+                        custom-style="height: 300px;"
+                        >
+                        <div class="play-wrapper">
+                            <div class="disc">
+                                <div class='level_2'>
+                                    <div class='level_3'>
+                                        <div class='level_3'>
+                                            <div class='level_3'>
+                                                <div class='level_3'>
+                                                    <div class='level_3 level_4'>
+                                                        <div class='level_3 level_5'>
+                                                            <img class="disc-img" :src="playingAvatar">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="progress-wrapper">
+                                <van-icon v-if="playing" name="pause-circle-o" size="35px" color="#2d5589" @click="pause"></van-icon>
+                                <van-icon v-else name="play-circle-o" size="35px" color="#2d5589" @click="continuePlay"></van-icon>
+                                <div class="progress">
+                                    <div class="current-time" :style="{width: progressWidth}"></div>
+                                </div>
+                            </div>
+                            <div class="time-wrapper">
+                                <p class="current-time-p">{{audioCurrentTime}}</p>
+                                <p class="duration-p">{{audioDuration}}</p>
+                            </div>
+                        </div>
+                    </van-popup>
                     <div class="record-list-wrapper" v-if="recordListExist">
                         <div class="record-play" v-for="(record, index) in recordList" :key="index">
                             <div class="user-wrapper">
@@ -45,9 +84,9 @@
                             <div class="record-text">
                                 {{record.text}}
                             </div>
-                            <div class="record-wrapper" @click="playRecord(record.file.url)">
+                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration)">
                                 <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
-                                <span class="duration-span" v-if="record.duration">{{record.duration}}</span>
+                                <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
                             </div>
                         </div>
                     </div>
@@ -80,7 +119,7 @@ import Toast from '../../../static/vant/toast/toast'
 import Tabs from '../../components/tabs'
 import NoData from '../../components/noData'
 import noRecord from '../../components/noRecord'
-import ms2Minutes from '../../utils/ms2Minutes.js'
+import {ms2Minutes, symbolChange, getAudioTime} from '../../utils/timeUtils.js'
 const innerAudioContext = wx.createInnerAudioContext()
 
 export default {
@@ -96,6 +135,13 @@ export default {
             poetNotFound: false,
             recordListExist: false,
             isReciteBack: false,
+            popupShow: false,
+            audioCurrentTime: '00:00',
+            audioDuration: '00:00',
+            progressWidth: 0,
+            // 正在播放状态
+            playing: false,
+            playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
             tabsArr: [
                 {
                     title: '译注',
@@ -157,18 +203,6 @@ export default {
     },
 
     methods: {
-        // ms2Minutes(ms) {
-        //     // let ms = parseInt(msStr)
-        //     // 得到分
-        //     let minutes = Math.floor(ms / 6000)
-        //     let leftMs = ms % 6000
-        //     // 得到秒
-        //     let seconds = leftMs / 1000
-        //     let minutesStr = minutes < 10 ? ('0' + minutes) : minutes
-        //     let secondsStr = seconds < 10 ? ('0' + seconds) : seconds
-        //     return `${minutesStr}′${secondsStr}″`
-        // },
-
         getOnePoetryById(id) {
             this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
@@ -248,7 +282,7 @@ export default {
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
-                        obj.duration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration) : ''
+                        obj.formatDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration, false) : ''
                         arr.push(obj)
                     }
                     this.recordList = arr
@@ -262,6 +296,10 @@ export default {
 
         switchTab(tab) {
             this.current = tab
+        },
+
+        onClose() {
+            this.popupShow = false;
         },
 
         toRecite() {
@@ -280,17 +318,47 @@ export default {
             })
         },
 
-        playRecord(src) {
-            innerAudioContext.src = src;
+        playRecord(src, duration) {
+            let that = this
+            console.log(duration)
+            that.audioDuration = ms2Minutes(duration)
+            that.playing = true
+            innerAudioContext.src = src
             innerAudioContext.play()
             innerAudioContext.onPlay(() => {
+                setTimeout(() => {
+                    innerAudioContext.currentTime
+                    innerAudioContext.onTimeUpdate(function () {
+                        that.audioCurrentTime = getAudioTime(innerAudioContext.currentTime)
+                        that.progressWidth = (innerAudioContext.currentTime * 1000 / duration) * 100 + '%'
+                        // console.log(innerAudioContext.currentTime)
+                    })
+                }, 100)
                 console.log("开始播放");
+                this.popupShow = true
             });
             innerAudioContext.onEnded(() => {
                 console.log("播放结束");
+                this.playing = false
             })
             innerAudioContext.onError((res) => {
                 console.log(res);
+            })
+        },
+
+        continuePlay() {
+            console.log('继续播放')
+            innerAudioContext.play()
+            innerAudioContext.onPlay(() => {
+                this.playing = true
+            })
+        },
+
+        pause() {
+            console.log('暂停')
+            innerAudioContext.pause()
+            innerAudioContext.onPause(() => {
+                this.playing = false
             })
         }
     } 
@@ -352,7 +420,7 @@ export default {
                     right: 20px;
                     bottom: 40px;
                     border-radius: 50%;
-                    border: 1px solid @theme-red;
+                    border: 1px solid @theme-blue;
                     background-color: #ffffff;
                     display: flex;
                     justify-content: center;
@@ -456,6 +524,124 @@ export default {
             color: #000;
             font-size: 16px;
             padding: 0 30px;
+        }
+
+        .play-wrapper {
+            width: 310px;
+            height: 80%;
+            padding: 20px;
+            margin: 10px auto;
+            background:hsla(0, 0%, 100%, .4);
+            overflow: hidden;
+            position: relative;
+            &::before {
+                content:'';
+                position:absolute;
+                top: 0;
+                right: 0;
+                left: 0;
+                bottom: 0;
+                // 滤镜
+	            filter: blur(20px);
+                background: url('https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1609562926,3331302960&fm=26&gp=0.jpg') fixed;
+                // background: #ffffff;
+                // background-color: rgba(141, 141, 141, 0.35);
+                // background-blend-mode: darken;
+                background-size: cover;
+                z-index: -1;
+            }
+            .disc {
+                margin: 0 auto;
+                width: 130px;
+                height: 130px;
+                background-color: rgba(255, 255, 255, 0.2);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 50%;
+                padding: 1.5%;
+                animation: mymove 10s linear infinite;
+                animation-delay: 1s;
+
+                @keyframes mymove {
+                    from {
+                        transform:rotate(0deg);
+                    }
+                    to {
+                        transform:rotate(360deg);
+                    }
+                }
+                .disc-img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                }
+            }
+        }
+
+        .level_2, .level_3 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            border-radius: 50%;
+        }
+
+        .level_2 {
+            width: 99%;
+            height: 99%;
+            background-color: #262628;
+            padding: 1.5%;
+            background: linear-gradient(#101012, #272729, #101012);
+        }
+
+        .level_3 {
+            width: 97%;
+            height: 97%;
+            border: 1px solid #131315;
+            padding: 1%;
+        }
+
+        .level_4 {
+            height: 92%;
+            width: 92%;
+            border: 5px solid #0b0708;
+        }
+
+        .level_5 {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 0;
+        }
+
+        .progress-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 10px;
+            .progress {
+                width: 180px;
+                height: 5px;
+                border-radius: 5px;
+                background: @second-grey;
+                .current-time {
+                    height: 100%;
+                    border-radius: 3px;
+                    background-color: @theme-blue;
+                }
+            }
+        }
+
+        .time-wrapper {
+            width: 200px;
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            right: 11%;
+            color: @second-grey;
+            font-size: 14px;
+            margin-top: -10px;
         }
     }
 </style>
