@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/search/main",
     "pages/home/main",
     "pages/library/main",
     "pages/my/main",

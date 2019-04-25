@@ -1,7 +1,7 @@
 <template>
     <div class="library">
         <div class="top-wrapper">
-            <van-search :value="searchValue" placeholder="搜索诗词、作者" shape="round" />
+            <van-search @search="toSearch" :value="searchValue" placeholder="搜索诗词、作者" shape="round" />
             <i-tabs :current="current" color="#2d5589" @change="handleChange">
                 <i-tab key="type" title="分类"></i-tab>
                 <i-tab key="author" title="作者"></i-tab>
@@ -124,7 +124,7 @@ export default {
                 })
                 this.famousPoetList = arr
                 this.isBottom = true
-                console.log(this.famousPoetList)
+                // console.log(this.famousPoetList)
             }).catch(err => {
                 console.log(err)
             })
@@ -133,6 +133,12 @@ export default {
         toPoet(id) {
             wx.navigateTo({
                 url: `/pages/poet/main?id=${id}`
+            })
+        },
+
+        toSearch(e) {
+            wx.navigateTo({
+                url: `/pages/search/main?keyword=${e.mp.detail}`
             })
         }
     }
