@@ -1,6 +1,13 @@
 <template>
     <div class="poetry-detail">
         <van-toast id="van-toast" />
+        <div class="collect">
+            <van-icon name="star-o" color="#8B8989" size="28px"></van-icon>
+            <div class="to-record" @click="toRecite" v-if="recordListExist">
+                <img class="record-img" src="../../../static/img/microphone.png">
+            </div>
+            <van-icon name="share" color="#8B8989" size="28px"></van-icon>
+        </div>
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
             <p class="author">{{'「'+ poetry.dynasty + '」'}}<span v-if="poet.desc">{{poet.name}}</span></p>
@@ -36,15 +43,33 @@
                 </p>
                 <!-- 朗诵 -->
                 <div class="recite-tab" v-if="current === 'recite'">
-                    <van-popup
-                        :show="popupShow"
-                        position="bottom"
-                        overlay="false"
-                        @close="onClose"
-                        custom-style="height: 300px;"
-                        >
-                        <div class="play-wrapper">
-                            <div class="disc">
+                    <div class="record-list-wrapper" v-if="recordListExist">
+                        <div class="record-play" v-for="(record, index) in recordList" :key="index">
+                            <div class="user-wrapper">
+                                <img class="avatar-img" :src="record.user.avatarUrl">
+                                <span class="nickName-span">{{record.user.nickName}}</span>
+                            </div>
+                            <div class="record-text">
+                                {{record.text}}
+                            </div>
+                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration)">
+                                <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
+                                <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <no-record v-else :poetryId="poetry.objectId"></no-record>
+                </div>
+                <van-popup
+                    :show="popupShow"
+                    position="bottom"
+                    overlay="false"
+                    @close="onClose"
+                    custom-style="height: 300px;"
+                    >
+                    <div class="play-wrapper">
+                        <div class="wp">
+                            <div :class="['disc', playing ? '': 'animation-pause']">
                                 <div class='level_2'>
                                     <div class='level_3'>
                                         <div class='level_3'>
@@ -61,39 +86,24 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="progress-wrapper">
-                                <van-icon v-if="playing" name="pause-circle-o" size="35px" color="#2d5589" @click="pause"></van-icon>
-                                <van-icon v-else name="play-circle-o" size="35px" color="#2d5589" @click="continuePlay"></van-icon>
-                                <div class="progress">
-                                    <div class="current-time" :style="{width: progressWidth}"></div>
-                                </div>
-                            </div>
-                            <div class="time-wrapper">
-                                <p class="current-time-p">{{audioCurrentTime}}</p>
-                                <p class="duration-p">{{audioDuration}}</p>
-                            </div>
                         </div>
-                    </van-popup>
-                    <div class="record-list-wrapper" v-if="recordListExist">
-                        <div class="record-play" v-for="(record, index) in recordList" :key="index">
-                            <div class="user-wrapper">
-                                <img class="avatar-img" :src="record.user.avatarUrl">
-                                <span class="nickName-span">{{record.user.nickName}}</span>
+                        <div class="progress-wrapper">
+                            <p class="current-time-p">{{audioCurrentTime}}</p>
+                            <div class="progress">
+                                <div class="current-time" :style="{width: progressWidth}"></div>
                             </div>
-                            <div class="record-text">
-                                {{record.text}}
-                            </div>
-                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration)">
-                                <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
-                                <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
-                            </div>
+                            <p class="duration-p">{{audioDuration}}</p>
+                        </div>
+                        <div class="play-operation">
+                            <van-icon name="like-o" size="25px" color="#767676"></van-icon>
+                            <van-icon v-if="playing" name="pause-circle-o" size="50px" color="#2d5589" @click="pause"></van-icon>
+                            <van-icon v-else name="play-circle-o" size="50px" color="#2d5589" @click="continuePlay"></van-icon>
+                            <van-icon name="share" size="25px" color="#767676"></van-icon>
                         </div>
                     </div>
-                    <div class="to-record" @click="toRecite" v-if="recordListExist">
-                        <img class="record-img" src="../../../static/img/microphone.png">
-                    </div>
-                    <no-record v-else :poetryId="poetry.objectId"></no-record>
+                </van-popup>
+                <div :class="['open-player', playing ? 'rotate' : '' ]" @click="openPlayer" v-if="recordListExist && playerShow && (!popupShow)">
+                    <img class="record-img" src="../../../static/img/music.png">
                 </div>
                 <div class="author-tab" v-if="current === 'author'">
                     <div v-if="poet.desc">
@@ -141,6 +151,8 @@ export default {
             progressWidth: 0,
             // 正在播放状态
             playing: false,
+            // 是否显示播放器
+            playerShow: false,
             playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
             tabsArr: [
                 {
@@ -194,12 +206,18 @@ export default {
     onHide() {
         console.log('hide')
         innerAudioContext.stop()
+        this.playing = false
+        this.popupShow = false
+        this.playerShow = false
     },
 
     // 从当前页回到诗歌页
     onUnload() {
         console.log('unload')
         innerAudioContext.stop()
+        this.playing = false
+        this.popupShow = false
+        this.playerShow = false
     },
 
     methods: {
@@ -286,7 +304,7 @@ export default {
                         arr.push(obj)
                     }
                     this.recordList = arr
-                    console.log(recordList)
+                    // console.log(recordList)
                 } else {
                     this.recordListExist = false
                 }
@@ -307,6 +325,10 @@ export default {
                 url: `/pages/recite/main?poetryId=${this.poetry.objectId}`
             });
         },
+
+        openPlayer() {
+            this.popupShow = true
+        },
         
         // handleChange (e) {
         //     this.current = e.target.key
@@ -320,10 +342,18 @@ export default {
 
         playRecord(src, duration) {
             let that = this
-            console.log(duration)
+            // console.log(duration)
             that.audioDuration = ms2Minutes(duration)
-            that.playing = true
+            // 这里好像无法判断点击的语音就是正在播放的语音
+            // if(src === innerAudioContext.src) {
+            //     console.log('safdas')
+            //     that.popupShow = true
+            //     return
+            // }
             innerAudioContext.src = src
+            this.popupShow = true
+            that.playing = true
+            that.playerShow = true
             innerAudioContext.play()
             innerAudioContext.onPlay(() => {
                 setTimeout(() => {
@@ -335,7 +365,6 @@ export default {
                     })
                 }, 100)
                 console.log("开始播放");
-                this.popupShow = true
             });
             innerAudioContext.onEnded(() => {
                 console.log("播放结束");
@@ -355,6 +384,18 @@ export default {
         },
 
         pause() {
+            // let discTransform;
+            // let wpTransform;
+            // wx.createSelectorQuery().select('.disc').fields({
+            //     computedStyle: ['transform']
+            // }, function(res) {
+            //     discTransform = res
+            // }).exec()
+            // wx.createSelectorQuery().select('.wp').fields({
+            //     computedStyle: ['transform']
+            // }, function(res) {
+            //     wpTransform = res
+            // }).exec()
             console.log('暂停')
             innerAudioContext.pause()
             innerAudioContext.onPause(() => {
@@ -370,6 +411,27 @@ export default {
     @deep: ~'>>>';
     @import url('../../theme.less');
     .poetry-detail {
+        .collect {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: #ffffff;
+            border-top: @list-border-bottom;
+            padding: 2px 20px;
+            z-index: 99;
+            .to-record {
+                margin: 0 20px;
+                .record-img {
+                    width: 30px;
+                    height:30px;
+                }
+            }
+        }
+
         .title, .author {
             text-align: center;
         }
@@ -404,7 +466,8 @@ export default {
             // }
 
             .tab-content {
-                padding: 0 23px 10px 23px;
+                padding: 0 23px 50px 23px;
+                // margin-bottom: 40px;
             }
             
             .about-tab {
@@ -413,28 +476,34 @@ export default {
 
             .recite-tab {
                 position: relative;
-                .to-record {
-                    width: 40px;
-                    height: 40px;
-                    position: fixed;
-                    right: 20px;
-                    bottom: 40px;
-                    border-radius: 50%;
-                    border: 1px solid @theme-blue;
-                    background-color: #ffffff;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 3;
-                    .record-img {
-                        width: 70%;
-                        height: 70%;
-                    }
-                }
 
                 .record-list-wrapper {
                     padding: 20px 0;
+                    position: relative;
                 }
+            }
+
+            .open-player {
+                width: 40px;
+                height: 40px;
+                position: fixed;
+                right: 20px;
+                bottom: 60px;
+                border-radius: 50%;
+                border: 1px solid @theme-blue;
+                background-color: #ffffff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 3;
+                .record-img {
+                    width: 70%;
+                    height: 70%;
+                }
+            }
+
+            .rotate {
+                animation: round 6s linear infinite;
             }
 
             .author-tab {
@@ -527,7 +596,7 @@ export default {
         }
 
         .play-wrapper {
-            width: 310px;
+            // width: 100%;
             height: 80%;
             padding: 20px;
             margin: 10px auto;
@@ -543,13 +612,29 @@ export default {
                 bottom: 0;
                 // 滤镜
 	            filter: blur(20px);
-                background: url('https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1609562926,3331302960&fm=26&gp=0.jpg') fixed;
+                background: url('https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1254538248,4136982084&fm=26&gp=0.jpg');
                 // background: #ffffff;
                 // background-color: rgba(141, 141, 141, 0.35);
                 // background-blend-mode: darken;
                 background-size: cover;
                 z-index: -1;
             }
+
+            .animation-pause {
+                animation-play-state: paused;
+            }
+
+            // .playing {
+            //     animation: round 10s linear infinite;
+            //     animation-delay: 0.5s;
+            // }
+
+            @keyframes round {
+                100% {
+                    transform: rotate(1turn);
+                }
+            }
+
             .disc {
                 margin: 0 auto;
                 width: 130px;
@@ -560,17 +645,8 @@ export default {
                 align-items: center;
                 border-radius: 50%;
                 padding: 1.5%;
-                animation: mymove 10s linear infinite;
-                animation-delay: 1s;
-
-                @keyframes mymove {
-                    from {
-                        transform:rotate(0deg);
-                    }
-                    to {
-                        transform:rotate(360deg);
-                    }
-                }
+                animation: round 10s linear infinite;
+                animation-delay: 0.5s;
                 .disc-img {
                     width: 100%;
                     height: 100%;
@@ -620,9 +696,11 @@ export default {
             justify-content: space-around;
             align-items: center;
             margin-top: 10px;
+            font-size: 12px;
+            color: @second-grey;
             .progress {
                 width: 180px;
-                height: 5px;
+                height: 3px;
                 border-radius: 5px;
                 background: @second-grey;
                 .current-time {
@@ -633,15 +711,12 @@ export default {
             }
         }
 
-        .time-wrapper {
-            width: 200px;
+        .play-operation {
+            width: 240px;
             display: flex;
-            justify-content: space-between;
-            position: absolute;
-            right: 11%;
-            color: @second-grey;
-            font-size: 14px;
-            margin-top: -10px;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px auto 0 auto;
         }
     }
 </style>
