@@ -1,7 +1,7 @@
 <template>
     <div class="search">
         <div class="search-wrapper">
-            <van-search :value="searchValue" placeholder="搜索诗词、作者" shape="round" @change="search" />
+            <van-search :value="searchValue" placeholder="搜索诗词、作者" shape="round" @change="search" @search="search"/>
         </div>
         <div class="result">
             <div class="poet-result">
@@ -81,18 +81,17 @@ export default {
     onReachBottom() {
         if(this.tip !== '没有更多了'){
             this.loadingBottom = true
+            this.searchPoetry(this.keyword, this.poetryList, this.currentPage, this.pageSize).then((res) => {
+                this.loadingBottom = false
+                if(res == 'nomore') {
+                    this.tip = '没有更多了'
+                }
+            })
         }
-        this.searchPoetry(this.keyword, this.poetryList, this.currentPage, this.pageSize).then((res) => {
-            this.loadingBottom = false
-            if(res == 'nomore') {
-                this.tip = '没有更多了'
-            }
-        })
     },
 
     methods: {
         searchPoet(keyword) {
-            console.log(keyword)
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.contains('name', keyword)
             poetQuery.descending('star')
@@ -148,12 +147,18 @@ export default {
                     console.log(this.poetryList)
                     this.currentPage ++
                 } else {
-                    this.noPoetry = true
+                    if(currentPage === 1) {
+                        this.noPoetry = true
+                    }
+                    return 'nomore'
                 }
             }).catch(err => console.log(err))
         },
 
         search(e) {
+            if(!e.mp.detail) {
+                return false
+            }
             this.currentPage = 1
             this.searchPoet(e.mp.detail)
             this.searchPoetry(e.mp.detail, [], this.currentPage, this.pageSize)

@@ -6,6 +6,7 @@
         "i-tab": "../../../static/iView/tab/index",
         "i-load-more": "../../../static/iView/load-more/index",
         "van-search": "../../../static/vant/search/index",
-        "van-icon": "../../../static/vant/icon/index"
+        "van-icon": "../../../static/vant/icon/index",
+        "van-toast": "../../../static/vant/toast/index"
     }
 }

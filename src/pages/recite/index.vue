@@ -396,6 +396,8 @@ page {
     .poetry-content {
       padding: 10px 23px;
       font-size: 19px;
+      display: flex;
+      justify-content: center;
     }
 
     .author {

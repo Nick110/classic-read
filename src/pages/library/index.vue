@@ -1,5 +1,6 @@
 <template>
     <div class="library">
+        <van-toast id="van-toast" />
         <div class="top-wrapper">
             <van-search @search="toSearch" :value="searchValue" placeholder="搜索诗词、作者" shape="round" />
             <i-tabs :current="current" color="#2d5589" @change="handleChange">
@@ -52,6 +53,7 @@
 // 存储服务
 var AV = require('leancloud-storage')
 import Tag from '../../components/tag'
+import Toast from '../../../static/vant/toast/toast'
 export default {
     data() {
         return {
@@ -137,6 +139,10 @@ export default {
         },
 
         toSearch(e) {
+            if(!e.mp.detail) {
+                Toast('请输入关键词')
+                return false
+            }
             wx.navigateTo({
                 url: `/pages/search/main?keyword=${e.mp.detail}`
             })

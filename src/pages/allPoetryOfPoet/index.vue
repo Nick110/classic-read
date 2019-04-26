@@ -41,7 +41,7 @@ export default {
 
     // 监听用户上拉触底事件
     onReachBottom() {
-        if(this.tip !== '没有更多了'){
+        if(this.tip !== '没有更多了') {
             this.loadingBottom = true
             this.getPoetry(this.poetId, this.poetryList, this.currentPage, this.pageSize).then((res) => {
                 this.loadingBottom = false
@@ -50,7 +50,6 @@ export default {
                 }
             })
         }
-        
     },
 
     methods: {
