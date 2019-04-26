@@ -174,7 +174,8 @@ export default {
             let start = (index - 6) > 0 ? (index - 6) : 0
             let frontStr = string.substring(start, index)
             let highlightStr = string.substr(index, length)
-            let backStr = string.substring(index + length, index + 8 - length)
+            let end = (index + 7 - length) < (index + length) ? string.length : (index + 7 - length)
+            let backStr = string.substring(index + length, end)
             return [frontStr, highlightStr, backStr]
         },
 

@@ -6,7 +6,13 @@
             <div class="to-record" @click="toRecite">
                 <img class="record-img" src="../../../static/img/microphone.png">
             </div>
-            <van-icon name="share" color="#8B8989" size="28px"></van-icon>
+            <button id="pageShare" open-type="share" class="share-btn">
+                <van-icon name="share" color="#8B8989" size="28px"></van-icon>
+            </button>
+            <div class="back-home" v-if="shareEnter" @click="backHome">
+                <van-icon name="wap-home" color="#8B8989" size="28px" custom-style="margin-right: 5px;"></van-icon>
+                <span>返回首页</span>
+            </div>
         </div>
         <div class="poetry-content">
             <p class="title">{{poetry.name}}</p>
@@ -56,6 +62,12 @@
                                 <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
                                 <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
                             </div>
+                            <div class="record-share">
+                                <van-icon name="like-o" color="#767676" custom-style="margin-right: 20px;"></van-icon>
+                                <button :data-url="record.file.url" :data-duration="record.duration" open-type="share" class="record-share-btn">
+                                    <van-icon name="share" color="#767676" custom-style="margin-right: 8px;"></van-icon>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <no-record v-else :poetryId="poetry.objectId"></no-record>
@@ -68,17 +80,18 @@
                     custom-style="height: 300px;"
                     >
                     <div class="play-wrapper">
-                        <div class="wp">
-                            <div :class="['disc', playing ? '': 'animation-pause']">
-                                <div class='level_2'>
+                        <div class="close-player">
+                            <van-icon name="cross" size="25px" color="#000" @click="closePlayer"></van-icon>
+                        </div>
+                        <div :class="['disc', playing ? '': 'animation-pause']">
+                            <div class='level_2'>
+                                <div class='level_3'>
                                     <div class='level_3'>
                                         <div class='level_3'>
                                             <div class='level_3'>
-                                                <div class='level_3'>
-                                                    <div class='level_3 level_4'>
-                                                        <div class='level_3 level_5'>
-                                                            <img class="disc-img" :src="playingAvatar">
-                                                        </div>
+                                                <div class='level_3 level_4'>
+                                                    <div class='level_3 level_5'>
+                                                        <img class="disc-img" :src="playingAvatar">
                                                     </div>
                                                 </div>
                                             </div>
@@ -153,6 +166,7 @@ export default {
             playing: false,
             // 是否显示播放器
             playerShow: false,
+            shareEnter: false,
             playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
             tabsArr: [
                 {
@@ -186,6 +200,9 @@ export default {
     },
 
     onLoad(option) {
+        if(option.shareEnter) {
+            this.shareEnter = true
+        }
         if(option.id) {
             this.getOnePoetryById(option.id)
         } else {
@@ -220,13 +237,36 @@ export default {
         this.playerShow = false
     },
 
+    onShareAppMessage(res) {
+        let that = this
+        console.log(res.target)
+        if(!res.target.id && res.from === 'button') {
+            return {
+                title: `我朗诵了${that.poetry.name}，来听听吧`,
+                path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&recordUrl=${res.target.dataset.url}&recordDuration=${res.target.dataset.duration}&shareEnter=${true}`,
+            }
+        } else {
+            return {
+                title: that.poetry.name,
+                path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&shareEnter=${true}`,
+                success: (res) => {    // 成功后要做的事情
+                    console.log(res)
+                },
+                fail: function (res) {
+                    // 分享失败
+                    console.log(res)
+                }
+            }
+        }
+    },
+
     methods: {
         getOnePoetryById(id) {
             this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
             poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
-                    // console.log('poetry: ', poetry)
+                    console.log('poetry: ', poetry.toJSON())
                     this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi ? poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n') : ''
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
@@ -326,13 +366,30 @@ export default {
             });
         },
 
+        backHome() {
+            let that = this
+            console.log('回到首页')
+            wx.switchTab({
+                url: '/pages/home/main',
+                success: function() {
+                    that.shareEnter = false
+                },
+                fail: function(err) {
+                    console.log(err)
+                }
+            });
+        },
+
         openPlayer() {
             this.popupShow = true
         },
-        
-        // handleChange (e) {
-        //     this.current = e.target.key
-        // },
+
+        closePlayer() {
+            let that = this
+            innerAudioContext.stop()
+            that.popupShow = false
+            that.playerShow = false
+        },
 
         toPoet(id) {
             wx.redirectTo({
@@ -398,9 +455,9 @@ export default {
             // }).exec()
             console.log('暂停')
             innerAudioContext.pause()
-            innerAudioContext.onPause(() => {
+            // innerAudioContext.onPause(() => {
                 this.playing = false
-            })
+            // })
         }
     } 
 }
@@ -410,6 +467,9 @@ export default {
     // 深度作用选择器：未为了修改iView组件自带的样式。https://blog.csdn.net/zqian1994/article/details/83899919
     @deep: ~'>>>';
     @import url('../../theme.less');
+    button::after {
+        border: none;
+    }
     .poetry-detail {
         .collect {
             width: 100%;
@@ -424,11 +484,27 @@ export default {
             padding: 2px 20px;
             z-index: 99;
             .to-record {
-                margin: 0 20px;
+                margin: 0 30px;
                 .record-img {
                     width: 30px;
                     height:30px;
                 }
+            }
+            .share-btn {
+                background: #ffffff;
+                border-color: #ffffff;
+                margin: 0;
+                line-height: inherit;
+                padding: 0;
+                overflow: visible;
+            }
+
+            .back-home {
+                display: flex;
+                align-items: center;
+                color: #8B8989;
+                position: absolute;
+                right: 60px;
             }
         }
 
@@ -538,7 +614,7 @@ export default {
         .record-play {
             color: @theme-blue;
             border-bottom: 1px solid @border-grey;
-            padding: 15px 0;
+            padding: 15px 0 5px 0;
             box-sizing: border-box;
             .popup-top {
                 display: flex;
@@ -570,6 +646,19 @@ export default {
             }
         }
 
+        .record-share {
+            margin-top: 10px;
+            // display: flex;
+            text-align: right;
+            .record-share-btn {
+                display: inline-block;
+                line-height: inherit;
+                background: #ffffff;
+                margin: 0;
+                overflow: visible;
+            }
+        }
+
         .user-wrapper {
             padding: 0 5px;
             margin-bottom: 10px;
@@ -597,9 +686,8 @@ export default {
 
         .play-wrapper {
             // width: 100%;
-            height: 80%;
+            height: 85%;
             padding: 20px;
-            margin: 10px auto;
             background:hsla(0, 0%, 100%, .4);
             overflow: hidden;
             position: relative;
@@ -618,6 +706,10 @@ export default {
                 // background-blend-mode: darken;
                 background-size: cover;
                 z-index: -1;
+            }
+
+            .close-player {
+                text-align: right;
             }
 
             .animation-pause {
