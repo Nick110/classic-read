@@ -3,7 +3,7 @@
         <van-toast id="van-toast" />
         <div class="collect">
             <van-icon name="star-o" color="#8B8989" size="28px"></van-icon>
-            <div class="to-record" @click="toRecite" v-if="recordListExist">
+            <div class="to-record" @click="toRecite">
                 <img class="record-img" src="../../../static/img/microphone.png">
             </div>
             <van-icon name="share" color="#8B8989" size="28px"></van-icon>

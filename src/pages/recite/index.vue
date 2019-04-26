@@ -119,10 +119,13 @@ export default {
         .then(poetry => {
           this.poetry = poetry.toJSON();
           console.log(poetry);
-          const poetQuery = new AV.Query("LCPoet");
-          poetQuery.get(poetry.toJSON().poet.objectId).then(poet => {
-            this.poet = poet.toJSON();
-          });
+          if(poetry.toJSON().poet) {
+            const poetQuery = new AV.Query("LCPoet");
+            poetQuery.get(poetry.toJSON().poet.objectId).then(poet => {
+              this.poet = poet.toJSON();
+            });
+          }
+          
         })
         .catch(err => {
           console.log(err);

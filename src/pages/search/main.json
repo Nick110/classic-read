@@ -2,6 +2,7 @@
     "navigationBarTitleText": "搜索",
     "enablePullDownRefresh": false,
     "usingComponents": {
+        "i-load-more": "../../../static/iView/load-more/index",
         "van-icon": "../../../static/vant/icon/index",
         "van-search": "../../../static/vant/search/index"
     }

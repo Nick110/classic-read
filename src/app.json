@@ -1,6 +1,5 @@
 {
   "pages": [
-    "pages/search/main",
     "pages/home/main",
     "pages/library/main",
     "pages/my/main",
@@ -8,6 +7,7 @@
     "pages/poet/main",
     "pages/tagDetail/main",
     "pages/recite/main",
+    "pages/search/main",
     "pages/allPoetryOfPoet/main"
   ],
   "window": {

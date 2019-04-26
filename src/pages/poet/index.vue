@@ -39,7 +39,7 @@
                     <p class="hot-sentence">{{poetry.sentence}}</p>
                 </div>
             </div>
-            <div class="more" @click="seeMore(poet.id)">
+            <div class="more" v-if="hotTen.length >= 10" @click="seeMore(poet.id)">
                 查看更多>>
             </div>
         </div>
