@@ -21,7 +21,7 @@ export default {
     },
 
     onLoad() {
-        this.current = this.tabsArr[0].current
+        this.current = this.currentTab
     },
 
     methods: {

@@ -1,6 +1,7 @@
 <template>
     <div class="poetry-detail">
         <van-toast id="van-toast" />
+        <van-dialog id="van-dialog" />
         <div class="collect">
             <van-icon name="star-o" color="#8B8989" size="28px"></van-icon>
             <div class="to-record" @click="toRecite">
@@ -58,14 +59,16 @@
                             <div class="record-text">
                                 {{record.text}}
                             </div>
-                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration)">
+                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration, record.user.avatarUrl)">
                                 <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
                                 <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
                             </div>
                             <div class="record-share">
-                                <van-icon name="like-o" color="#767676" custom-style="margin-right: 20px;"></van-icon>
-                                <button :data-url="record.file.url" :data-duration="record.duration" open-type="share" class="record-share-btn">
-                                    <van-icon name="share" color="#767676" custom-style="margin-right: 8px;"></van-icon>
+                                <van-icon v-if="record.currentUserLiked" name="like" color="#FF0000" size="22px"></van-icon>
+                                <van-icon v-else name="like-o" color="#767676" size="22px" @click="like(index,record.objectId)"></van-icon>
+                                <span v-if="record.like > 0" class="record-like" :class="{'record-liked': record.currentUserLiked}">{{record.like}}</span>
+                                <button :data-url="record.file.url" :data-duration="record.duration" open-type="share" class="record-share-btn record-item-share">
+                                    <van-icon name="share" color="#767676" size="22px" custom-style="margin-right: 8px;"></van-icon>
                                 </button>
                             </div>
                         </div>
@@ -111,7 +114,9 @@
                             <van-icon name="like-o" size="25px" color="#767676"></van-icon>
                             <van-icon v-if="playing" name="pause-circle-o" size="50px" color="#2d5589" @click="pause"></van-icon>
                             <van-icon v-else name="play-circle-o" size="50px" color="#2d5589" @click="continuePlay"></van-icon>
-                            <van-icon name="share" size="25px" color="#767676"></van-icon>
+                            <button id="playerShare" :data-url="playingSrc" :data-duration="originalDuration" class="record-share-btn" open-type="share">
+                                <van-icon name="share" size="25px" color="#767676"></van-icon>
+                            </button>
                         </div>
                     </div>
                 </van-popup>
@@ -139,6 +144,7 @@
 // 存储服务
 var AV = require('leancloud-storage')
 import Toast from '../../../static/vant/toast/toast'
+import Dialog from '../../../static/vant/dialog/dialog'
 import Tabs from '../../components/tabs'
 import NoData from '../../components/noData'
 import noRecord from '../../components/noRecord'
@@ -167,6 +173,8 @@ export default {
             // 是否显示播放器
             playerShow: false,
             shareEnter: false,
+            playingSrc: '',
+            originalDuration: '',
             playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
             tabsArr: [
                 {
@@ -200,15 +208,19 @@ export default {
     },
 
     onLoad(option) {
+        // this.current = 'translate'
         if(option.shareEnter) {
             this.shareEnter = true
+            if(option.recordUrl) {
+                this.current = 'recite'
+                this.playRecord(option.recordUrl, option.recordDuration)
+            }
         }
         if(option.id) {
             this.getOnePoetryById(option.id)
         } else {
             this.getOnePoetry(option.verse, option.author)
         }
-        this.current = 'translate'
     },
 
     onShow() {
@@ -240,7 +252,7 @@ export default {
     onShareAppMessage(res) {
         let that = this
         console.log(res.target)
-        if(!res.target.id && res.from === 'button') {
+        if((!res.target.id && res.from === 'button') || res.target.id === 'playerShare') {
             return {
                 title: `我朗诵了${that.poetry.name}，来听听吧`,
                 path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&recordUrl=${res.target.dataset.url}&recordDuration=${res.target.dataset.duration}&shareEnter=${true}`,
@@ -321,11 +333,16 @@ export default {
                 }
             }).catch(err => {
                 console.log(err)
+                if(err.code === 124) {
+                    Toast('网络超时')
+                }
             })
         },
 
         // 获取朗诵列表
         getRecordList() {
+            const currentUser = AV.User.current()
+            console.log(currentUser)
             const recordQuery = new AV.Query('LCRecord')
             const poetry = AV.Object.createWithoutData('LCPoetry', this.poetry.objectId)
             recordQuery.equalTo('poetry', poetry)
@@ -340,7 +357,13 @@ export default {
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
+                        // console.log(record.toJSON())
                         obj.formatDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration, false) : ''
+                        if(record.toJSON().likedUsers && record.toJSON().likedUsers.length > 0) {
+                            obj.currentUserLiked = record.toJSON().likedUsers.indexOf(currentUser.id) < 0 ? false : true
+                        } else {
+                            obj.currentUserLiked = false
+                        }
                         arr.push(obj)
                     }
                     this.recordList = arr
@@ -350,6 +373,50 @@ export default {
                 }
                
             }).catch(err => console.log(err))
+        },
+
+        like(index, recordId) {
+            let that = this
+            wx.checkSession({
+                success: function() {
+                    that.recordList[index].currentUserLiked = true
+                    that.recordList[index].like++
+                    const recordLikeMap = new AV.Object("RecordLikeMap");
+                    const currentUser = AV.User.current();
+                    const userId = currentUser.id;
+                    // console.log(userId)
+                    const record = AV.Object.createWithoutData("LCRecord", recordId);
+                    recordLikeMap.set('user', currentUser);
+                    recordLikeMap.set('record', record);
+                    recordLikeMap.save().then(res => {
+                        console.log('点赞成功')
+                        record.addUnique('likedUsers', [userId])
+                        record.save().then(function (record) {
+                            record.increment('like', 1);
+                            return record.save({
+                                fetchWhenSave: true
+                            });
+                        }, function (error) {
+                            // 异常处理
+                            console.error(error);
+                        });
+                    })
+                },
+
+                fail: function() {
+                    Dialog.confirm({
+                        title: '登录',
+                        message: '需要登录才能进进行操作哦'
+                    }).then(() => {
+                        // on confirm
+                        wx.switchTab({
+                            url: '/pages/my/main'
+                        })
+                    }).catch(() => {
+                        // on cancel
+                    });
+                }
+            })
         },
 
         switchTab(tab) {
@@ -397,9 +464,11 @@ export default {
             })
         },
 
-        playRecord(src, duration) {
+        playRecord(src, duration, img) {
             let that = this
+            that.playingAvatar = img || 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg'
             // console.log(duration)
+            that.originalDuration = duration
             that.audioDuration = ms2Minutes(duration)
             // 这里好像无法判断点击的语音就是正在播放的语音
             // if(src === innerAudioContext.src) {
@@ -408,6 +477,7 @@ export default {
             //     return
             // }
             innerAudioContext.src = src
+            that.playingSrc = src
             this.popupShow = true
             that.playing = true
             that.playerShow = true
@@ -471,6 +541,18 @@ export default {
         border: none;
     }
     .poetry-detail {
+        .record-share-btn {
+            display: inline-block;
+            line-height: inherit;
+            background: transparent;
+            margin: 0;
+            overflow: visible;
+            padding: 0;
+        }
+
+        .record-item-share {
+            margin-left: 20px;
+        }
         .collect {
             width: 100%;
             height: 40px;
@@ -563,7 +645,7 @@ export default {
                 width: 40px;
                 height: 40px;
                 position: fixed;
-                right: 20px;
+                left: 20px;
                 bottom: 60px;
                 border-radius: 50%;
                 border: 1px solid @theme-blue;
@@ -650,12 +732,17 @@ export default {
             margin-top: 10px;
             // display: flex;
             text-align: right;
-            .record-share-btn {
-                display: inline-block;
-                line-height: inherit;
-                background: #ffffff;
-                margin: 0;
-                overflow: visible;
+            .record-like {
+                color: #8B8989;
+                margin-left: 3px;
+                // margin-right: 20px;
+                font-size: 14px;
+                position:relative;
+                bottom:5px;
+            }
+
+            .record-liked {
+                color: #FF0000;
             }
         }
 
@@ -686,8 +773,8 @@ export default {
 
         .play-wrapper {
             // width: 100%;
-            height: 85%;
-            padding: 20px;
+            height: 92%;
+            padding: 10px 20px;
             background:hsla(0, 0%, 100%, .4);
             overflow: hidden;
             position: relative;
