@@ -2,7 +2,7 @@
     <div class="poetry-detail">
         <van-toast id="van-toast" />
         <van-dialog id="van-dialog" />
-        <div class="collect">
+        <div class="collect" v-if="poetry.objectId">
             <van-icon name="star-o" color="#8B8989" size="28px"></van-icon>
             <div class="to-record" @click="toRecite">
                 <img class="record-img" src="../../../static/img/microphone.png">
@@ -59,17 +59,26 @@
                             <div class="record-text">
                                 {{record.text}}
                             </div>
-                            <div class="record-wrapper" @click="playRecord(record.file.url, record.duration, record.user.avatarUrl)">
+                            <div class="record-wrapper" @click="playRecord(record, index)">
                                 <van-icon custom-style="margin-top: 7px" name="volume-o" color="#2d5589" size="20"></van-icon>
                                 <span class="duration-span" v-if="record.formatDuration">{{record.formatDuration}}</span>
                             </div>
                             <div class="record-share">
-                                <van-icon v-if="record.currentUserLiked" name="like" color="#FF0000" size="22px"></van-icon>
-                                <van-icon v-else name="like-o" color="#767676" size="22px" @click="like(index,record.objectId)"></van-icon>
-                                <span v-if="record.like > 0" class="record-like" :class="{'record-liked': record.currentUserLiked}">{{record.like}}</span>
-                                <button :data-url="record.file.url" :data-duration="record.duration" open-type="share" class="record-share-btn record-item-share">
-                                    <van-icon name="share" color="#767676" size="22px" custom-style="margin-right: 8px;"></van-icon>
-                                </button>
+                                <span class="record-date">{{record.formatCreatedAt}}</span>
+                                <div>
+                                    <van-icon v-if="record.currentUserLiked" name="like" color="#FF0000" size="22px" @click="cancelLike(record.objectId, index)"></van-icon>
+                                    <van-icon v-else name="like-o" color="#767676" size="22px" @click="like(record.objectId, index)"></van-icon>
+                                    <span v-if="record.like > 0" class="record-like" :class="{'record-liked': record.currentUserLiked}">{{record.like}}</span>
+                                    <button 
+                                        :data-url="record.file.url"
+                                        :data-duration="record.duration"
+                                        :data-colonDuration="record.colonDuration"
+                                        :data-avatar="record.user.avatarUrl"
+                                        open-type="share"
+                                        class="record-share-btn record-item-share">
+                                        <van-icon name="share" color="#767676" size="22px" custom-style="margin-right: 8px;"></van-icon>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,13 +117,24 @@
                             <div class="progress">
                                 <div class="current-time" :style="{width: progressWidth}"></div>
                             </div>
-                            <p class="duration-p">{{audioDuration}}</p>
+                            <p class="duration-p">{{playingRecord.colonDuration}}</p>
                         </div>
                         <div class="play-operation">
-                            <van-icon name="like-o" size="25px" color="#767676"></van-icon>
+                            <div v-if="playingRecordIndex >= 0">
+                                <van-icon v-if="playingRecord.currentUserLiked" name="like" size="25px" color="#FF0000" @click="cancelLike(playingRecord.objectId, playingRecordIndex)"></van-icon>
+                                <van-icon v-else name="like-o" size="25px" color="#767676" @click="like(playingRecord.objectId, playingRecordIndex)"></van-icon>
+                            </div>
+                            <div v-else style="width: 43px"></div>
                             <van-icon v-if="playing" name="pause-circle-o" size="50px" color="#2d5589" @click="pause"></van-icon>
                             <van-icon v-else name="play-circle-o" size="50px" color="#2d5589" @click="continuePlay"></van-icon>
-                            <button id="playerShare" :data-url="playingSrc" :data-duration="originalDuration" class="record-share-btn" open-type="share">
+                            <button
+                                id="playerShare"
+                                :data-url="playingRecord.file.url"
+                                :data-duration="playingRecord.duration"
+                                :data-colonDuration="playingRecord.colonDuration"
+                                :data-avatar="playingRecord.user.avatarUrl"
+                                class="record-share-btn"
+                                open-type="share">
                                 <van-icon name="share" size="25px" color="#767676"></van-icon>
                             </button>
                         </div>
@@ -173,8 +193,13 @@ export default {
             // 是否显示播放器
             playerShow: false,
             shareEnter: false,
-            playingSrc: '',
-            originalDuration: '',
+            // playingSrc: '',
+            // originalDuration: '',
+            playingRecord: {
+                file: {},
+                user: {}
+            },
+            playingRecordIndex: '',
             playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
             tabsArr: [
                 {
@@ -208,12 +233,22 @@ export default {
     },
 
     onLoad(option) {
-        // this.current = 'translate'
+        let that = this
+        this.current = 'translate'
         if(option.shareEnter) {
             this.shareEnter = true
             if(option.recordUrl) {
-                this.current = 'recite'
-                this.playRecord(option.recordUrl, option.recordDuration)
+                let record = {
+                    duration: option.recordDuration,
+                    colonDuration: option.recordColonDuration,
+                    user: {
+                        avatarUrl: option.recordAvatar
+                    },
+                    file: {
+                        url: option.recordUrl,
+                    }
+                }
+                this.playRecord(record, -1)
             }
         }
         if(option.id) {
@@ -255,7 +290,7 @@ export default {
         if((!res.target.id && res.from === 'button') || res.target.id === 'playerShare') {
             return {
                 title: `我朗诵了${that.poetry.name}，来听听吧`,
-                path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&recordUrl=${res.target.dataset.url}&recordDuration=${res.target.dataset.duration}&shareEnter=${true}`,
+                path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&recordUrl=${res.target.dataset.url}&recordDuration=${res.target.dataset.duration}&recordColonDuration=${res.target.dataset.colonduration}&recordAvatar=${res.target.dataset.avatar}&shareEnter=${true}`,
             }
         } else {
             return {
@@ -278,7 +313,7 @@ export default {
             const poetryQuery = new AV.Query('LCPoetry')
             poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
-                    console.log('poetry: ', poetry.toJSON())
+                    // console.log('poetry: ', poetry.toJSON())
                     this.poetry = poetry.toJSON()
                     this.poetry.shangxi = poetry.attributes.shangxi ? poetry.attributes.shangxi.replace(/(赏析|鉴赏|评析|简析|其)[一|二|三]?\n\n/g, '赏析\n') : ''
                     this.poetry.about = poetry.attributes.about && poetry.attributes.about.replace(/背景?\n\n/g, '背景\n')
@@ -341,8 +376,9 @@ export default {
 
         // 获取朗诵列表
         getRecordList() {
+            let that = this
             const currentUser = AV.User.current()
-            console.log(currentUser)
+            // console.log(currentUser)
             const recordQuery = new AV.Query('LCRecord')
             const poetry = AV.Object.createWithoutData('LCPoetry', this.poetry.objectId)
             recordQuery.equalTo('poetry', poetry)
@@ -357,17 +393,26 @@ export default {
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
-                        // console.log(record.toJSON())
+                        console.log(record.toJSON())
                         obj.formatDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration, false) : ''
-                        if(record.toJSON().likedUsers && record.toJSON().likedUsers.length > 0) {
-                            obj.currentUserLiked = record.toJSON().likedUsers.indexOf(currentUser.id) < 0 ? false : true
+                        obj.colonDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration) : ''
+                        obj.formatCreatedAt = that.formatCreatedAt(record.toJSON().createdAt)
+                        if(record.toJSON().likedUsers && (record.toJSON().likedUsers.length > 0)) {
+                            wx.checkSession({
+                                success: function() {
+                                    obj.currentUserLiked = record.toJSON().likedUsers.indexOf(currentUser.id) < 0 ? false : true
+                                },
+                                fail: function() {
+                                    obj.currentUserLiked = false
+                                }
+                            })
                         } else {
                             obj.currentUserLiked = false
                         }
                         arr.push(obj)
                     }
                     this.recordList = arr
-                    // console.log(recordList)
+                    console.log('arr:', arr)
                 } else {
                     this.recordListExist = false
                 }
@@ -375,7 +420,8 @@ export default {
             }).catch(err => console.log(err))
         },
 
-        like(index, recordId) {
+        like(recordId, index) {
+            console.log(index)
             let that = this
             wx.checkSession({
                 success: function() {
@@ -417,6 +463,41 @@ export default {
                     });
                 }
             })
+        },
+
+        cancelLike(recordId, index) {
+            console.log(recordId)
+            let that = this
+            that.recordList[index].currentUserLiked = false
+            that.recordList[index].like--
+            const firstQuery = new AV.Query("RecordLikeMap");
+            const secondQuery = new AV.Query("RecordLikeMap");
+            const currentUser = AV.User.current();
+            const userId = currentUser.id;
+            // console.log(userId)
+            const record = AV.Object.createWithoutData("LCRecord", recordId);
+            firstQuery.equalTo('user', currentUser);
+            secondQuery.equalTo('record', record);
+            const query = AV.Query.and(firstQuery, secondQuery)
+            query.first().then(res => {
+                console.log(res)
+                var like = AV.Object.createWithoutData('RecordLikeMap', res.id);
+                like.destroy().then(function() {
+                    console.log('删除一条点赞成功')
+                }, function(err) {
+                    console.log(err)
+                })
+                const record = AV.Object.createWithoutData("LCRecord", recordId)
+                record.remove('likedUsers', userId)
+                record.save().then(function(record) {
+                    record.increment('like', -1)
+                    return record.save({
+                        fetchWhenSave: true
+                    })
+                }, function(err){
+                    console.log(err)
+                })
+            }).catch(err => console.log(err))
         },
 
         switchTab(tab) {
@@ -464,20 +545,24 @@ export default {
             })
         },
 
-        playRecord(src, duration, img) {
+        playRecord(record, index) {
             let that = this
-            that.playingAvatar = img || 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg'
+            that.playingRecordIndex = index
+            that.playingAvatar = record.user.avatarUrl || 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg'
             // console.log(duration)
-            that.originalDuration = duration
-            that.audioDuration = ms2Minutes(duration)
+            that.playingRecord = record
+            console.log(that.playingRecord)
+            // that.originalDuration = duration
+            // that.audioDuration = ms2Minutes(record.duration)
             // 这里好像无法判断点击的语音就是正在播放的语音
             // if(src === innerAudioContext.src) {
             //     console.log('safdas')
             //     that.popupShow = true
             //     return
             // }
-            innerAudioContext.src = src
-            that.playingSrc = src
+            innerAudioContext.src = record.file.url
+            // console.log(innerAudioContext.src)
+            // that.playingSrc = src
             this.popupShow = true
             that.playing = true
             that.playerShow = true
@@ -487,7 +572,7 @@ export default {
                     innerAudioContext.currentTime
                     innerAudioContext.onTimeUpdate(function () {
                         that.audioCurrentTime = getAudioTime(innerAudioContext.currentTime)
-                        that.progressWidth = (innerAudioContext.currentTime * 1000 / duration) * 100 + '%'
+                        that.progressWidth = (innerAudioContext.currentTime * 1000 / record.duration) * 100 + '%'
                         // console.log(innerAudioContext.currentTime)
                     })
                 }, 100)
@@ -511,23 +596,15 @@ export default {
         },
 
         pause() {
-            // let discTransform;
-            // let wpTransform;
-            // wx.createSelectorQuery().select('.disc').fields({
-            //     computedStyle: ['transform']
-            // }, function(res) {
-            //     discTransform = res
-            // }).exec()
-            // wx.createSelectorQuery().select('.wp').fields({
-            //     computedStyle: ['transform']
-            // }, function(res) {
-            //     wpTransform = res
-            // }).exec()
             console.log('暂停')
             innerAudioContext.pause()
             // innerAudioContext.onPause(() => {
                 this.playing = false
             // })
+        },
+
+        formatCreatedAt(createdAt) {
+            return createdAt.split('T')[0]
         }
     } 
 }
@@ -730,8 +807,16 @@ export default {
 
         .record-share {
             margin-top: 10px;
-            // display: flex;
-            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .record-date {
+                display: inline-block;
+                margin-left: 10px;
+                color: #8B8989;
+                font-size: 14px;
+            }
+            // text-align: right;
             .record-like {
                 color: #8B8989;
                 margin-left: 3px;
@@ -895,7 +980,7 @@ export default {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            margin: 20px auto 0 auto;
+            margin: 15px auto 0 auto;
         }
     }
 </style>

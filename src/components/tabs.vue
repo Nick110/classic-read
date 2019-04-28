@@ -21,7 +21,7 @@ export default {
     },
 
     onLoad() {
-        this.current = this.currentTab
+        this.current = 'translate'
     },
 
     methods: {
