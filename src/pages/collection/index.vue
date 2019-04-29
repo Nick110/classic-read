@@ -25,7 +25,7 @@
                     <no-data v-if="poetEmpty" name="暂无赞过的作者"></no-data>
                     <div v-else class="poet-list">
                         <div class="poet-item" v-for="(poet, index) in likedPoetList" :key="index" @click="toPoet(poet.objectId)">
-                            <img class="poet-img" :src="poet.image" />
+                            <img class="poet-img" :src="poet.image">
                             <div class="poet-name">{{poet.name}}</div>
                         </div>
                     </div>

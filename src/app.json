@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/creation/main",
     "pages/home/main",
     "pages/library/main",
     "pages/my/main",
@@ -26,12 +27,20 @@
       "text": "摘录",
       "iconPath": "/static/img/daily.png",
       "selectedIconPath": "/static/img/daily_selected.png"
-    }, {
+    },
+    {
+        "pagePath": "pages/creation/main",
+        "text": "创作",
+        "iconPath": "/static/img/create.png",
+        "selectedIconPath": "/static/img/create_selected.png"
+    },
+    {
       "pagePath": "pages/library/main",
       "text": "文库",
       "iconPath": "/static/img/library.png",
       "selectedIconPath": "/static/img/library_selected.png"
-    }, {
+    },
+    {
       "pagePath": "pages/my/main",
       "text": "我的",
       "iconPath": "/static/img/my.png",

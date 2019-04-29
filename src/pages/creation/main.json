@@ -1,0 +1,9 @@
+{
+    "navigationBarTitleText": "创作",
+    "enablePullDownRefresh": false,
+    "usingComponents": {
+        "van-field": "../../../static/vant/field/index",
+        "van-icon": "../../../static/vant/icon/index",
+        "van-popup": "../../../static/vant/popup/index"
+    }
+}
