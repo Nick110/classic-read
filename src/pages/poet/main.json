@@ -2,6 +2,7 @@
     "navigationBarTitleText": "诗人",
     "enablePullDownRefresh": false,
     "usingComponents": {
-        "van-icon": "../../../static/vant/icon/index"
+        "van-icon": "../../../static/vant/icon/index",
+        "van-dialog": "../../../static/vant/dialog/index"
     }
 }

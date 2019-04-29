@@ -5,6 +5,7 @@
     "usingComponents": {
         "van-button": "../../../static/vant/button/index",
         "van-icon": "../../../static/vant/icon/index",
-        "van-notify": "../../../static/vant/notify/index"
+        "van-notify": "../../../static/vant/notify/index",
+        "van-toast": "../../../static/vant/toast/index"
     }
 }

@@ -1,6 +1,7 @@
 <template>
     <div class="account">
         <van-notify id="custom-selector"/>
+        <van-toast id="van-toast" />
         <div class="logged">
             <div class="top">
                 <img class="avatar-bg" src="../../../static/img/my_bg.png">
@@ -31,7 +32,7 @@
                 </div>
             </div>
             <div class="data-list">
-                <div class="list-item">
+                <div class="list-item" @click="toCollection">
                     <van-icon
                         custom-class="list-item-icon"
                         name="star-o"
@@ -91,6 +92,7 @@
 <script>
 var AV = require("leancloud-storage");
 import Notify from "../../../static/vant/notify/notify";
+import Toast from "../../../static/vant/toast/toast";
 
 export default {
   data() {
@@ -235,6 +237,16 @@ export default {
             .catch(console.error);
         }
       });
+    },
+
+    toCollection() {
+        if(this.loginStatus) {
+            wx.navigateTo({
+                url: `/pages/collection/main`
+            })
+        } else {
+            Toast('需要登录才能进行此操作');
+        }
     }
   }
 };

@@ -15,7 +15,8 @@
                     </p>
                 </div>
                 <div class="poet-praise">
-                    <van-icon size="60px" name="thumb-circle-o" color="#92130a"/>
+                    <van-icon v-if="liked" @click="cancelLike(poet.id)" size="60px" name="thumb-circle-o" color="#92130a"/>
+                    <van-icon v-else @click="likePoet(poet.id)" size="60px" name="thumb-circle-o" color="#8B8989"/>
                 </div>
             </div>
 
@@ -64,6 +65,7 @@
 var AV = require('leancloud-storage')
 import NoData from '../../components/noData'
 import {formatSentence} from '../../utils/index.js'
+import Dialog from '../../../static/vant/dialog/dialog'
 
 export default {
     data() {
@@ -81,7 +83,9 @@ export default {
                 foldText: '展开全文',
                 iconName: 'arrow-down'
             },
-            textLength: ''
+            textLength: '',
+            // 点赞
+            liked: false
         }
     },
 
@@ -98,6 +102,7 @@ export default {
         }
         
         this.getPoetInfo(option.id)
+        this.poetIsLiked(option.id)
         this.getHotPoetry(option.id)
     },
 
@@ -114,7 +119,7 @@ export default {
         getPoetInfo(id) {
             const poetQuery = new AV.Query('LCPoet')
             poetQuery.get(id).then(poet => {
-                console.log(poet.toJSON())
+                // console.log(poet.toJSON())
                 this.poet = poet.toJSON()
                 this.poet.content = poet.attributes.content ? poet.attributes.content.slice(0, -1) : ''
                 this.poet.id = poet.toJSON().objectId
@@ -182,6 +187,86 @@ export default {
                     iconName: 'arrow-down'
                 }
             }
+        },
+
+        // 当前诗人是否已被点赞
+        poetIsLiked(poetId) {
+            let that = this;
+            that.liked = false;
+            wx.checkSession({
+                success: function() {
+                    const currentUser = AV.User.current();
+                    const firstQuery = new AV.Query('PoetLikeMap');
+                    firstQuery.equalTo('user', currentUser);
+                    const secondQuery = new AV.Query('PoetLikeMap');
+                    const currentPoet = AV.Object.createWithoutData('LCPoet', poetId);
+                    secondQuery.equalTo('poet', currentPoet);
+                    const query = AV.Query.and(firstQuery, secondQuery);
+                    query.find().then((res) => {
+                        if(res.length > 0) {
+                            that.liked = true
+                        }
+                    }).catch(err => console.log(err))
+                }, 
+                fail: function() {
+                    that.liked = false
+                }
+            })
+        },
+
+        likePoet(poetId) {
+            let that = this
+            wx.checkSession({
+                success: function() {
+                    const currentPoet = AV.Object.createWithoutData('LCPoet', poetId);
+                    const currentUser = AV.User.current();
+                    const poetLikeMap = new AV.Object('PoetLikeMap');
+                    poetLikeMap.set('user', currentUser);
+                    poetLikeMap.set('poet', currentPoet);
+                    poetLikeMap.save().then(res => {
+                        console.log('点赞诗人成功')
+                        that.liked = true;
+                        currentPoet.increment('star', 1).save().then(() => {
+                            that.poet.star++;
+                            console.log('诗人star + 1')
+                        });
+                    }).catch(err => console.log(err))
+                },
+                fail: function() {
+                    Dialog.confirm({
+                        title: '登录',
+                        message: '需要登录才能进行操作哦'
+                    }).then(() => {
+                        // on confirm
+                        wx.switchTab({
+                            url: '/pages/my/main'
+                        })
+                    }).catch(() => {
+                        // on cancel
+                    });
+                }
+            })
+        },
+
+        cancelLike(poetId) {
+            let that = this;
+            const currentUser = AV.User.current();
+            const firstQuery = new AV.Query('PoetLikeMap');
+            firstQuery.equalTo('user', currentUser);
+            const secondQuery = new AV.Query('PoetLikeMap');
+            const currentPoet = AV.Object.createWithoutData('LCPoet', poetId);
+            secondQuery.equalTo('poet', currentPoet);
+            const query = AV.Query.and(firstQuery, secondQuery);
+            query.first().then(res => {
+                res.destroy().then(() => {
+                    console.log('取消点赞成功');
+                    that.liked = false;
+                    currentPoet.increment('star', -1).save().then(() => {
+                        console.log('诗人star - 1')
+                        that.poet.star--;
+                    })
+                }).catch(err => console.log(err));
+            })
         }
     }
 }

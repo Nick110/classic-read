@@ -81,6 +81,10 @@ export default {
         this.getTags('主题', 'themeList')
         this.getTags('写景', 'sceneryList')
         this.getTags('节日', 'festivalList')
+    },
+
+    // 为了实时看到诗人点赞数，暂时先放到onShow里
+    onShow() {
         this.getFamousPoetList()
     },
 

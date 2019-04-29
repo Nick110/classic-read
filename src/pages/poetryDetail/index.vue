@@ -3,7 +3,8 @@
         <van-toast id="van-toast" />
         <van-dialog id="van-dialog" />
         <div class="collect" v-if="poetry.objectId">
-            <van-icon name="star-o" color="#8B8989" size="28px"></van-icon>
+            <van-icon v-if="collected" name="star" color="#FFD700" size="28px" @click="cancelCollect(poetry.objectId)"></van-icon>
+            <van-icon v-else name="star-o" color="#8B8989" size="28px" @click="collect(poetry.objectId)"></van-icon>
             <div class="to-record" @click="toRecite">
                 <img class="record-img" src="../../../static/img/microphone.png">
             </div>
@@ -121,7 +122,7 @@
                         </div>
                         <div class="play-operation">
                             <div v-if="playingRecordIndex >= 0">
-                                <van-icon v-if="playingRecord.currentUserLiked" name="like" size="25px" color="#FF0000" @click="cancelLike(playingRecord.objectId, playingRecordIndex)"></van-icon>
+                                <van-icon v-if="playingRecord.currentUserLiked" name="like" size="25px" color="#FF0000" @click="cancelLike(playingRecord.objectId, playingRecordIndex, true)"></van-icon>
                                 <van-icon v-else name="like-o" size="25px" color="#767676" @click="like(playingRecord.objectId, playingRecordIndex)"></van-icon>
                             </div>
                             <div v-else style="width: 43px"></div>
@@ -197,10 +198,12 @@ export default {
             // originalDuration: '',
             playingRecord: {
                 file: {},
-                user: {}
+                user: {},
+                currentUserLiked: false
             },
             playingRecordIndex: '',
             playingAvatar: 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg',
+            collected: false,
             tabsArr: [
                 {
                     title: '译注',
@@ -252,9 +255,13 @@ export default {
             }
         }
         if(option.id) {
-            this.getOnePoetryById(option.id)
+            this.getOnePoetryById(option.id).then(() => {
+                this.poetryIsCollected(this.poetry.objectId)
+            })
         } else {
-            this.getOnePoetry(option.verse, option.author)
+            this.getOnePoetry(option.verse, option.author).then(() => {
+                this.poetryIsCollected(this.poetry.objectId)
+            })
         }
     },
 
@@ -311,7 +318,7 @@ export default {
         getOnePoetryById(id) {
             this.loading = true
             const poetryQuery = new AV.Query('LCPoetry')
-            poetryQuery.get(id).then(poetry => {
+            return poetryQuery.get(id).then(poetry => {
                 if(poetry && poetry != undefined) {
                     // console.log('poetry: ', poetry.toJSON())
                     this.poetry = poetry.toJSON()
@@ -344,7 +351,7 @@ export default {
             poetryQuery.startsWith('author', author)
             poetryQuery.contains('content', verse)
             poetryQuery.addDescending('star')
-            poetryQuery.first().then(poetry => {
+            return poetryQuery.first().then(poetry => {
                 if(poetry && poetry != undefined) {
                     // console.log('poetry: ', poetry)
                     this.poetry = poetry.toJSON()
@@ -393,7 +400,7 @@ export default {
                     let arr = []
                     for(let record of recordList) {
                         let obj = record.toJSON()
-                        console.log(record.toJSON())
+                        // console.log(record.toJSON())
                         obj.formatDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration, false) : ''
                         obj.colonDuration = record.toJSON().duration ? ms2Minutes(record.toJSON().duration) : ''
                         obj.formatCreatedAt = that.formatCreatedAt(record.toJSON().createdAt)
@@ -421,7 +428,6 @@ export default {
         },
 
         like(recordId, index) {
-            console.log(index)
             let that = this
             wx.checkSession({
                 success: function() {
@@ -452,7 +458,7 @@ export default {
                 fail: function() {
                     Dialog.confirm({
                         title: '登录',
-                        message: '需要登录才能进进行操作哦'
+                        message: '需要登录才能进行操作哦'
                     }).then(() => {
                         // on confirm
                         wx.switchTab({
@@ -466,7 +472,6 @@ export default {
         },
 
         cancelLike(recordId, index) {
-            console.log(recordId)
             let that = this
             that.recordList[index].currentUserLiked = false
             that.recordList[index].like--
@@ -605,6 +610,81 @@ export default {
 
         formatCreatedAt(createdAt) {
             return createdAt.split('T')[0]
+        },
+
+        // 当前诗词是否已被收藏
+        poetryIsCollected(poetryId) {
+            let that = this;
+            that.collected = false;
+            wx.checkSession({
+                success: function() {
+                    const currentUser = AV.User.current();
+                    const firstQuery = new AV.Query('PoetryCollectMap');
+                    firstQuery.equalTo('user', currentUser);
+                    const secondQuery = new AV.Query('PoetryCollectMap');
+                    const currentPoetry = AV.Object.createWithoutData('LCPoetry', poetryId);
+                    secondQuery.equalTo('poetry', currentPoetry);
+                    const query = AV.Query.and(firstQuery, secondQuery);
+                    query.find().then((res) => {
+                        if(res.length > 0) {
+                            that.collected = true;
+                        }
+                    }).catch(err => console.log(err));
+                }, 
+                fail: function() {
+                    that.collected = false;
+                }
+            })
+        },
+
+        collect(poetryId) {
+            let that = this;
+            wx.checkSession({
+                success: function() {
+                    const currentUser = AV.User.current();
+                    const currentPoetry = AV.Object.createWithoutData('LCPoetry', poetryId)
+
+                    const poetryCollectMap = new AV.Object("PoetryCollectMap");
+                    poetryCollectMap.set('user', currentUser);
+                    poetryCollectMap.set('poetry', currentPoetry);
+                    poetryCollectMap.save().then(() => {
+                        console.log('收藏成功');
+                        that.collected = true;
+                    }).catch(err => console.log('收藏失败', err))
+                },
+                fail: function() {
+                    Dialog.confirm({
+                        title: '登录',
+                        message: '需要登录才能进行操作哦'
+                    }).then(() => {
+                        // on confirm
+                        wx.switchTab({
+                            url: '/pages/my/main'
+                        })
+                    }).catch(() => {
+                        // on cancel
+                    });
+                }
+            })
+        },
+
+        cancelCollect(poetryId) {
+            let that = this;
+            const currentUser = AV.User.current();
+            const firstQuery = new AV.Query('PoetryCollectMap');
+            firstQuery.equalTo('user', currentUser);
+            const secondQuery = new AV.Query('PoetryCollectMap');
+            const currentPoetry = AV.Object.createWithoutData('LCPoetry', poetryId);
+            secondQuery.equalTo('poetry', currentPoetry);
+            const query = AV.Query.and(firstQuery, secondQuery);
+            query.first().then(res => {
+                res.destroy().then(() => {
+                    that.collected = false
+                    console.log('取消收藏成功')
+                }, () => {
+                    console.log('取消收藏失败')
+                })
+            }).catch(err => console.log(err))
         }
     } 
 }

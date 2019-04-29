@@ -149,6 +149,11 @@ export default {
             .poet {
                 color: @second-grey;
                 font-size: 14px;
+                width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-align: right;
             }
 
             .poetry-bottom {
