@@ -1,9 +1,12 @@
 {
-    "navigationBarTitleText": "创作",
+    "navigationBarTitleText": "原创",
     "enablePullDownRefresh": false,
     "usingComponents": {
         "van-field": "../../../static/vant/field/index",
         "van-icon": "../../../static/vant/icon/index",
-        "van-popup": "../../../static/vant/popup/index"
+        "van-popup": "../../../static/vant/popup/index",
+        "van-dialog": "../../../static/vant/dialog/index",
+        "van-notify": "../../../static/vant/notify/index",
+        "van-toast": "../../../static/vant/toast/index"
     }
 }

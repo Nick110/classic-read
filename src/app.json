@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/creation/main",
     "pages/home/main",
+    "pages/creation/main",
     "pages/library/main",
     "pages/my/main",
     "pages/poetryDetail/main",
@@ -10,7 +10,8 @@
     "pages/recite/main",
     "pages/search/main",
     "pages/allPoetryOfPoet/main",
-    "pages/collection/main"
+    "pages/collection/main",
+    "pages/creationDetail/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",
