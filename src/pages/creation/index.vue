@@ -5,30 +5,32 @@
         <van-dialog id="van-dialog" />
         <div class="posts-wrapper">
             <div class="post" v-for="(post, index) in posts" :key="post.objectId">
-                <div class="post-top">
-                    <div class="avatar">
-                        <img class="avatar-img" :src="post.user.avatarUrl">
+                <div @click="toDetail(post.objectId)">
+                    <div class="post-top">
+                        <div class="avatar">
+                            <img class="avatar-img" :src="post.user.avatarUrl">
+                        </div>
+                        <div class="publisher-name">{{post.user.nickName}}</div>
+                        <div class="publish">发布</div>
                     </div>
-                    <div class="publisher-name">{{post.user.nickName}}</div>
-                    <div class="publish">发布</div>
-                </div>
-                <div class="post-title">{{post.title}}</div>
-                <div class="post-content">
-                    <text>{{post.content}}</text>
-                </div>
-                <div class="post-img-wrapper" v-if="post.image">
-                    <image class="post-img"
-                        :src="post.image"
-                        @load="imageLoad"
-                        :style="{width: image.width + 'px', height: image.height + 'px'}"/>
+                    <div class="post-title">{{post.title}}</div>
+                    <div class="post-content">
+                        <text>{{post.content}}</text>
+                    </div>
+                    <div class="post-img-wrapper" v-if="post.image">
+                        <image class="post-img"
+                            :src="post.image"
+                            @load="imageLoad"
+                            :style="{width: image.width + 'px', height: image.height + 'px'}"/>
+                    </div>
                 </div>
                 <div class="publish-time">
                     <p class="date">{{post.formatTime}}</p>
                     <div class="operation">
-                        <img v-if="post.currentUserPraised" class="operation-img" src="../../../static/img/praise_red.png">
+                        <img v-if="post.currentUserPraised" @click="cancelPraise(post.objectId, index)" class="operation-img" src="../../../static/img/praise_red.png">
                         <img v-else @click="praise(post.objectId, index)" class="operation-img" src="../../../static/img/praise.png">
                         <span class="praise-number" :class="post.currentUserPraised ? 'praised' : ''">{{post.praise}}</span>
-                        <img class="operation-img" src="../../../static/img/comment.png" style="margin-right: 15px;">
+                        <img class="operation-img" src="../../../static/img/comment.png" style="margin-right: 15px;" @click="toDetail(post.objectId, true)">
                         <button id="postShare"
                             open-type="share"
                             class="share-btn"
@@ -130,7 +132,7 @@ export default {
             if(res.target.id == 'postShare') {
                 return {
                     title: `${res.target.dataset.username}  创作了一首诗词，一起来看看吧`,
-                    path: `/pages/creationDetail/main?id=${res.target.dataset.id}`
+                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}`
                 }
             }
         }
@@ -152,19 +154,16 @@ export default {
                 for(let post of list) {
                     let obj = post.toJSON();
                     obj.formatTime = post.toJSON().createdAt.split('T')[0];
-                    console.log(post.toJSON().praisedUsers);
                     if(post.toJSON().praisedUsers) {
                         wx.checkSession({
                             success: function() {
                                 const currentUser = AV.User.current();
-                                console.log(currentUser.id)
                                 obj.currentUserPraised = post.toJSON().praisedUsers.indexOf(currentUser.id) < 0 ? false : true
                             },
                             fail: function() {
                                 obj.currentUserPraised = false;
                             },
                             complete: function() {
-                                console.log(obj.currentUserPraised);
                                 arr.push(obj);
                             }
                         })
@@ -180,47 +179,79 @@ export default {
 
         praise(postId, index) {
             let that = this;
-            if(that.loginStatus) {
-                that.posts[index].currentUserPraised = true;
-                that.posts[index].praise++;
-                const creationPraiseMap = new AV.Object("CreationPraiseMap");
-                const currentUser = AV.User.current();
-                const userId = currentUser.id;
-                const post = AV.Object.createWithoutData("LCCreation", postId);
-                creationPraiseMap.set('user', currentUser);
-                creationPraiseMap.set('creation', post);
-                creationPraiseMap.save().then(res => {
-                    console.log('点赞成功')
-                    post.addUnique('praisedUsers', [userId])
-                    post.save().then(function (post) {
-                        post.increment('praise', 1).save().then(() => console.log('新增一个点赞用户'));
-                    }, function (error) {
-                        // 异常处理
-                        console.error(error);
-                    });
-                })
-            } else {
-                Dialog.confirm({
-                    title: '登录',
-                    message: '需要登录才能进行操作哦'
-                }).then(() => {
-                    // on confirm
-                    wx.setStorage({
-                        key: 'creationLogin',
-                        data: true,
-                        success: function() {
-                            wx.switchTab({
-                                url: '/pages/my/main'
-                            })
-                        },
-                        fail: function() {
-                            console.log('设置缓存失败');
-                        }
+            wx.checkSession({
+                success: function() {
+                    that.posts[index].currentUserPraised = true;
+                    that.posts[index].praise++;
+                    const creationPraiseMap = new AV.Object("CreationPraiseMap");
+                    const currentUser = AV.User.current();
+                    const userId = currentUser.id;
+                    const post = AV.Object.createWithoutData("LCCreation", postId);
+                    creationPraiseMap.set('user', currentUser);
+                    creationPraiseMap.set('creation', post);
+                    creationPraiseMap.save().then(res => {
+                        console.log('点赞成功')
+                        post.addUnique('praisedUsers', [userId])
+                        post.save().then(function (post) {
+                            post.increment('praise', 1).save().then(() => console.log('新增一个点赞用户'));
+                        }, function (error) {
+                            // 异常处理
+                            console.error(error);
+                        });
                     })
-                }).catch(() => {
-                    // on cancel
-                });
-            }
+                },
+
+                fail: function() {
+                    Dialog.confirm({
+                        title: '登录',
+                        message: '需要登录才能进行操作哦'
+                    }).then(() => {
+                        // on confirm
+                        wx.setStorage({
+                            key: 'creationLogin',
+                            data: true,
+                            success: function() {
+                                wx.switchTab({
+                                    url: '/pages/my/main'
+                                })
+                            },
+                            fail: function() {
+                                console.log('设置缓存失败');
+                            }
+                        })
+                    }).catch(() => {
+                        // on cancel
+                    });
+                }
+            });
+        },
+
+        cancelPraise(postId, index) {
+            let that = this
+            that.posts[index].currentUserPraised = false;
+            that.posts[index].praise--;
+            const firstQuery = new AV.Query("CreationPraiseMap");
+            const secondQuery = new AV.Query("CreationPraiseMap");
+            const currentUser = AV.User.current();
+            const creation = AV.Object.createWithoutData("LCCreation", postId);
+            firstQuery.equalTo('user', currentUser);
+            secondQuery.equalTo('creation', creation);
+            const query = AV.Query.and(firstQuery, secondQuery);
+            query.first().then(res => {
+                var praise = AV.Object.createWithoutData('CreationPraiseMap', res.id);
+                praise.destroy().then(function() {
+                    console.log('删除一条点赞成功')
+                }, function(err) {
+                    console.log(err)
+                })
+                creation.remove('praisedUsers', currentUser.id);
+                creation.save().then(function(res) {
+                    res.increment('praise', -1)
+                    return res.save().then(() => console.log('取消点赞成功')).catch(err => console.log(err))
+                }, function(err){
+                    console.log(err)
+                })
+            }).catch(err => console.log(err));
         },
 
         openEditor() {
@@ -359,7 +390,13 @@ export default {
                     });
                 })
             }
-        }
+        },
+
+        toDetail(id, focus = false) {
+            wx.navigateTo({
+                url: `/pages/creationDetail/main?creationId=${id}&focus=${focus}`
+            })
+        },
     }
 }
 </script>
@@ -382,12 +419,12 @@ export default {
             margin: 20px 0;
             .post {
                 padding: 10px 30px;
-                border-bottom: @list-border-bottom;
+                border-bottom: 5px solid #ddddddee;
             }
             .post-top {
                 display: flex;
                 align-items: flex-end;
-                margin-bottom: 10px;
+                margin-bottom: 20px;
                 .publisher-name {
                     margin-left: 10px;
                     font-size: 16px;
@@ -472,9 +509,10 @@ export default {
         .publish-time {
             display: flex;
             justify-content: space-between;
+            margin-top: 20px;
             .date {
                 color: @second-grey;
-                font-size: 14px;
+                font-size: 16px;
             }
         }
 

@@ -2,6 +2,8 @@
     "navigationBarTitleText": "原创",
     "enablePullDownRefresh": false,
     "usingComponents": {
-        
+        "van-field": "../../../static/vant/field/index",
+        "van-button": "../../../static/vant/button/index",
+        "van-toast": "../../../static/vant/toast/index"
     }
 }
