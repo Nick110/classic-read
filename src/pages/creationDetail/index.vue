@@ -2,6 +2,13 @@
     <div class="creation-detail">
         <van-toast id="van-toast" />
         <div class="post">
+            <button id="postShare"
+                open-type="share"
+                class="share-btn"
+                :data-userName="creation.user.nickName"
+                :data-id="creation.objectId">
+                <van-icon name="share" color="#8B8989" size="25px"></van-icon>
+            </button>
             <div class="post-top">
                 <div class="avatar">
                     <img class="avatar-img" :src="creation.user.avatarUrl">
@@ -104,6 +111,19 @@ export default {
         this.getComments(option.creationId);
     },
 
+    onShareAppMessage(res) {
+         if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target);
+            if(res.target.id == 'postShare') {
+                return {
+                    title: `${res.target.dataset.username}  创作了一首诗词，一起来看看吧`,
+                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}`
+                }
+            }
+        }
+    },
+
     methods: {
         getCreationDetail(id) {
             let that = this;
@@ -125,7 +145,6 @@ export default {
             commentQuery.include('user');
             commentQuery.include('replyUser');
             commentQuery.find().then(list => {
-                console.log(list)
                 if(list.length > 0) {
                     that.commentsExisted = true;
                     let arr = [];
@@ -195,11 +214,30 @@ export default {
 
 <style lang="less" scoped>
     @import url('../../theme.less');
+    button::after {
+        border: none;
+    }
+
+    button {
+        display: inline-block;
+        background: transparent;
+        padding: 0;
+        overflow: visible;
+        line-height: normal;
+        top: 3px;
+    }
     .creation-detail {
         .post {
             padding: 10px 30px;
             margin-top: 10px;
             border-bottom: @list-border-bottom;
+            position: relative;
+
+            .share-btn {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+            }
         }
         .post-top {
             display: flex;

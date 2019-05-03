@@ -11,7 +11,9 @@
     "pages/search/main",
     "pages/allPoetryOfPoet/main",
     "pages/collection/main",
-    "pages/creationDetail/main"
+    "pages/creationDetail/main",
+    "pages/myCreation/main",
+    "pages/myRecitation/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",

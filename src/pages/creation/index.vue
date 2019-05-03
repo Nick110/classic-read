@@ -21,6 +21,7 @@
                         <image class="post-img"
                             :src="post.image"
                             @load="imageLoad"
+                            mode="widthFix"
                             :style="{width: image.width + 'px', height: image.height + 'px'}"/>
                     </div>
                 </div>
@@ -462,14 +463,21 @@ export default {
             }
         }
         .new {
-            width: 100%;
+            width: 40px;
+            height: 40px;
             position: fixed;
-            bottom: 0;
-            left: 0;
-            text-align: center;
+            bottom: 5px;
+            left: 50%;
+            transform: translate(-50%, 0);
+            border: 1px solid @theme-blue;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
             .create-img {
-                width: 40px;
-                height: 40px;
+                width: 70%;
+                height: 70%;
             }
         }
 

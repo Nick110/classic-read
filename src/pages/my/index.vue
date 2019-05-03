@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="data-list">
-                <div class="list-item" @click="toCollection">
+                <div class="list-item" @click="toCollection('/pages/collection/main')">
                     <van-icon
                         custom-class="list-item-icon"
                         name="star-o"
@@ -42,7 +42,7 @@
                     <span class="list-item-name">我的收藏</span>
                     <van-icon custom-class="arrow-right" name="arrow" color="#C0C0C0"></van-icon>
                 </div>
-                <div class="list-item">
+                <div class="list-item" @click="toCollection('/pages/myCreation/main')">
                     <van-icon
                         custom-class="list-item-icon"
                         name="records"
@@ -52,7 +52,7 @@
                     <span class="list-item-name">我的创作</span>
                     <van-icon custom-class="arrow-right" name="arrow" color="#C0C0C0"></van-icon>
                 </div>
-                <div class="list-item">
+                <div class="list-item" @click="toCollection('/pages/myRecitation/main')">
                     <van-icon
                         custom-class="list-item-icon"
                         name="bullhorn-o"
@@ -239,10 +239,10 @@ export default {
       });
     },
 
-    toCollection() {
+    toCollection(url) {
         if(this.loginStatus) {
             wx.navigateTo({
-                url: `/pages/collection/main`
+                url: url
             })
         } else {
             Toast('需要登录才能进行此操作');

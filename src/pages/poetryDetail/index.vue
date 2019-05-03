@@ -121,13 +121,13 @@
                             <p class="duration-p">{{playingRecord.colonDuration}}</p>
                         </div>
                         <div class="play-operation">
-                            <div v-if="playingRecordIndex >= 0">
+                            <!-- <div v-if="playingRecordIndex >= 0">
                                 <van-icon v-if="playingRecord.currentUserLiked" name="like" size="25px" color="#FF0000" @click="cancelLike(playingRecord.objectId, playingRecordIndex, true)"></van-icon>
                                 <van-icon v-else name="like-o" size="25px" color="#767676" @click="like(playingRecord.objectId, playingRecordIndex)"></van-icon>
-                            </div>
-                            <div v-else style="width: 43px"></div>
-                            <van-icon v-if="playing" name="pause-circle-o" size="50px" color="#2d5589" @click="pause"></van-icon>
-                            <van-icon v-else name="play-circle-o" size="50px" color="#2d5589" @click="continuePlay"></van-icon>
+                            </div> -->
+                            <!-- <div v-else style="width: 43px"></div> -->
+                            <van-icon v-if="playing" name="pause-circle-o" size="40px" color="#2d5589" @click="pause"></van-icon>
+                            <van-icon v-else name="play-circle-o" size="40px" color="#2d5589" @click="continuePlay"></van-icon>
                             <button
                                 id="playerShare"
                                 :data-url="playingRecord.file.url"
@@ -135,8 +135,9 @@
                                 :data-colonDuration="playingRecord.colonDuration"
                                 :data-avatar="playingRecord.user.avatarUrl"
                                 class="record-share-btn"
-                                open-type="share">
-                                <van-icon name="share" size="25px" color="#767676"></van-icon>
+                                open-type="share"
+                                style="width: 40px; height: 40px;">
+                                <van-icon name="share" size="40px" color="#767676"></van-icon>
                             </button>
                         </div>
                     </div>
@@ -489,19 +490,20 @@ export default {
                 var like = AV.Object.createWithoutData('RecordLikeMap', res.id);
                 like.destroy().then(function() {
                     console.log('删除一条点赞成功')
+                    const record = AV.Object.createWithoutData("LCRecord", recordId)
+                    record.remove('likedUsers', userId)
+                    record.save().then(function(record) {
+                        record.increment('like', -1)
+                        return record.save({
+                            fetchWhenSave: true
+                        })
+                    }, function(err) {
+                        console.log(err)
+                    })
                 }, function(err) {
                     console.log(err)
                 })
-                const record = AV.Object.createWithoutData("LCRecord", recordId)
-                record.remove('likedUsers', userId)
-                record.save().then(function(record) {
-                    record.increment('like', -1)
-                    return record.save({
-                        fetchWhenSave: true
-                    })
-                }, function(err){
-                    console.log(err)
-                })
+                
             }).catch(err => console.log(err))
         },
 
@@ -556,7 +558,6 @@ export default {
             that.playingAvatar = record.user.avatarUrl || 'http://img2.imgtn.bdimg.com/it/u=1122649470,955539824&fm=26&gp=0.jpg'
             // console.log(duration)
             that.playingRecord = record
-            console.log(that.playingRecord)
             // that.originalDuration = duration
             // that.audioDuration = ms2Minutes(record.duration)
             // 这里好像无法判断点击的语音就是正在播放的语音
@@ -697,10 +698,11 @@ export default {
     button::after {
         border: none;
     }
+
     .poetry-detail {
         .record-share-btn {
             display: inline-block;
-            line-height: inherit;
+            line-height: normal;
             background: transparent;
             margin: 0;
             overflow: visible;
@@ -1056,7 +1058,7 @@ export default {
         }
 
         .play-operation {
-            width: 240px;
+            width: 180px;
             display: flex;
             justify-content: space-around;
             align-items: center;
