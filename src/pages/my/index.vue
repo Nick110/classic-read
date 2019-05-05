@@ -11,7 +11,7 @@
                     </div>
                     <div class="user-desc">
                         <p class="nick-name">{{user.nickName}}</p>
-                        <p class="motto">谁知盘中餐，粒粒皆辛苦</p>
+                        <!-- <p class="motto">谁知盘中餐，粒粒皆辛苦</p> -->
                     </div>
                 </div>
                 <!-- 未登录 -->
@@ -168,18 +168,18 @@ export default {
           console.log(user.toJSON());
           wx.setStorage({
             key: "user",
-            data: user.toJSON()
-          });
-        })
-        .then(() => {
-          that.getUserInfo();
-          that.loginStatus = true;
-          that.getCurrentUser();
-          Notify({
-            text: "登录成功",
-            duration: 1000,
-            selector: "#custom-selector",
-            backgroundColor: "#1989fa"
+            data: user.toJSON(),
+            success: function() {
+                that.getUserInfo();
+                that.loginStatus = true;
+                that.getCurrentUser();
+                Notify({
+                    text: "登录成功",
+                    duration: 1000,
+                    selector: "#custom-selector",
+                    backgroundColor: "#1989fa"
+                });
+            }
           });
         })
         .catch(console.error);

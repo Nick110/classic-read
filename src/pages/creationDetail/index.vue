@@ -3,6 +3,10 @@
         <van-toast id="van-toast" />
         <van-dialog id="van-dialog" />
         <div class="post">
+            <div class="back-home" v-if="shareEnter" @click="backHome">
+                <van-icon name="wap-home" size="24px" color="#adadaddc"></van-icon>
+                <span class="back-text">返回首页</span>
+            </div>
             <div class="post-top">
                 <div class="avatar">
                     <img class="avatar-img" :src="creation.user.avatarUrl">
@@ -34,7 +38,6 @@
                         <van-icon name="share" color="#8B8989" size="25px"></van-icon>
                     </button>
                 </div>
-                
             </div>
         </div>
 
@@ -107,6 +110,7 @@ export default {
             replyFoucs: false,
             commentContent: '',
             commentsExisted: true,
+            shareEnter: false
         }
     },
 
@@ -119,6 +123,7 @@ export default {
         // this.isFocus = option.focus;
         this.getCreationDetail(option.creationId);
         this.getComments(option.creationId);
+        this.shareEnter = option.shareEnter;
     },
 
     onShareAppMessage(res) {
@@ -128,7 +133,7 @@ export default {
             if(res.target.id == 'postShare') {
                 return {
                     title: `${res.target.dataset.username}  创作了一首诗词，一起来看看吧`,
-                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}`
+                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}&shareEnter=${true}`
                 }
             }
         }
@@ -299,6 +304,12 @@ export default {
             this.replyContent = e.mp.detail;
         },
 
+        backHome() {
+            wx.switchTab({
+                url: '/pages/home/main'
+            })
+        },
+
         imageLoad(e) {
             // console.log(e.mp.detail.width)
             var width = e.mp.detail.width,    //获取图片真实宽度
@@ -336,6 +347,18 @@ export default {
             margin-top: 10px;
             border-bottom: @list-border-bottom;
             position: relative;
+
+            .back-home {
+                display: flex;
+                align-items: center;
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                .back-text {
+                    font-size: 16px;
+                    color: @second-grey;
+                }
+            }
         }
         .post-top {
             display: flex;

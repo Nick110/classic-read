@@ -140,7 +140,7 @@ export default {
             if(res.target.id == 'postShare') {
                 return {
                     title: `${res.target.dataset.username}  创作了一首诗词，一起来看看吧`,
-                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}`
+                    path: `/pages/creationDetail/main?creationId=${res.target.dataset.id}&shareEnter=${true}`
                 }
             }
         }
@@ -429,7 +429,7 @@ export default {
     }
     .creation {
         .posts-wrapper {
-            margin: 20px 0;
+            margin-bottom: 20px;
             .post {
                 padding: 10px 30px;
                 border-bottom: 5px solid #e7e7e7e3;
@@ -438,6 +438,7 @@ export default {
                 display: flex;
                 align-items: flex-end;
                 margin-bottom: 20px;
+                margin-top: 10px;
                 .publisher-name {
                     margin-left: 10px;
                     font-size: 16px;
