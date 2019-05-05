@@ -13,7 +13,8 @@
     "pages/collection/main",
     "pages/creationDetail/main",
     "pages/myCreation/main",
-    "pages/myRecitation/main"
+    "pages/myRecitation/main",
+    "pages/about/main"
   ],
   "window": {
     "backgroundTextStyle": "dark",

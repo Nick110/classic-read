@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="data-list about">
-                <div class="list-item">
+                <div class="list-item" @click="toAbout">
                     <van-icon
                         custom-class="list-item-icon"
                         name="smile-comment-o"
@@ -247,6 +247,12 @@ export default {
         } else {
             Toast('需要登录才能进行此操作');
         }
+    },
+
+    toAbout() {
+        wx.navigateTo({
+            url: '/pages/about/main'
+        })
     }
   }
 };
