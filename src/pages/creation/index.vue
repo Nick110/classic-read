@@ -15,7 +15,7 @@
                     </div>
                     <div class="post-title">{{post.title}}</div>
                     <div class="post-content">
-                        <text>{{post.content}}</text>
+                        <text class="post-text">{{post.content}}</text>
                     </div>
                     <div class="post-img-wrapper" v-if="post.image">
                         <image class="post-img"
@@ -394,6 +394,7 @@ export default {
                         that.getPosts();
                     }).catch(error => {
                         console.error(error);
+                        Toast(error);
                         Notify({
                             text: "提交错误",
                             duration: 1000,

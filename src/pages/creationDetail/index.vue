@@ -218,7 +218,6 @@ export default {
                 success: function() {
                     that.currentUserPraised = true;
                     that.creation.praise++;
-                    debugger;
                     const creationPraiseMap = new AV.Object("CreationPraiseMap");
                     const currentUser = AV.User.current();
                     const userId = currentUser.id;
@@ -268,7 +267,6 @@ export default {
             let that = this
             that.currentUserPraised = false;
             that.creation.praise--;
-            debugger;
             const firstQuery = new AV.Query("CreationPraiseMap");
             const secondQuery = new AV.Query("CreationPraiseMap");
             const currentUser = AV.User.current();

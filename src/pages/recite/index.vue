@@ -269,12 +269,7 @@ export default {
       record
         .save()
         .then(() => {
-          Notify({
-            text: "提交成功",
-            duration: 1000,
-            selector: "#van-notify",
-            backgroundColor: "#1989fa"
-          });
+          Toast.success('提交成功');
         })
         .catch(error => {
           console.error(error);

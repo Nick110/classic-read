@@ -13,6 +13,7 @@
                 <van-cell
                     :title="recitation.poetry.name"
                     :value="recitation.formatDuration"
+                    title-width="240px"
                     :label="recitation.createTime"
                     is-link
                     size="large" 
