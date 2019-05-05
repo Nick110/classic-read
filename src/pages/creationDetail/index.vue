@@ -1,14 +1,8 @@
 <template>
     <div class="creation-detail">
         <van-toast id="van-toast" />
+        <van-dialog id="van-dialog" />
         <div class="post">
-            <button id="postShare"
-                open-type="share"
-                class="share-btn"
-                :data-userName="creation.user.nickName"
-                :data-id="creation.objectId">
-                <van-icon name="share" color="#8B8989" size="25px"></van-icon>
-            </button>
             <div class="post-top">
                 <div class="avatar">
                     <img class="avatar-img" :src="creation.user.avatarUrl">
@@ -28,6 +22,19 @@
             </div>
             <div class="publish-time">
                 <p class="date">{{creation.formatTime}}</p>
+                <div>
+                    <img v-if="currentUserPraised" @click="cancelPraise(creation.objectId)" class="operation-img" src="../../../static/img/praise_red.png">
+                    <img v-else @click="praise(creation.objectId)" class="operation-img" src="../../../static/img/praise.png">
+                    <span v-if="creation.praise > 0" class="praise-number" :class="currentUserPraised ? 'praised' : ''">{{creation.praise}}</span>
+                    <button id="postShare"
+                        open-type="share"
+                        class="share-btn"
+                        :data-userName="creation.user.nickName"
+                        :data-id="creation.objectId">
+                        <van-icon name="share" color="#8B8989" size="25px"></van-icon>
+                    </button>
+                </div>
+                
             </div>
         </div>
 
@@ -35,10 +42,11 @@
             <p class="comment-title">评论</p>
             <div class="comment-wrapper" v-if="commentsExisted">
                 <div class="comment-item" v-for="comment in comments" :key="comment.objectId">
+                    <img class="comment-avatar" :src="comment.user.avatarUrl">
                     <span class="comment-user">{{comment.user.nickName}}</span>
                     <span v-if="comment.replyUser"> 回复 </span>
                     <span v-if="comment.replyUser">{{comment.replyUser.nickName}}</span>
-                    <span>：</span>
+                    <span class="comment-user">：</span>
 
                     <div class="comment-content">
                         {{comment.content}}
@@ -80,6 +88,7 @@
 
 <script>
 const AV = require("leancloud-storage");
+import Dialog from '../../../static/vant/dialog/dialog';
 import Toast from '../../../static/vant/toast/toast';
 import NoData from '../../components/noData'
 export default {
@@ -88,6 +97,7 @@ export default {
             creation: {
                 user: {}
             },
+            currentUserPraised: false,
             image: {},
             comments: [],
             isFocus: false,
@@ -106,7 +116,7 @@ export default {
 
     onLoad(option) {
         console.log('load');
-        this.isFocus = option.focus;
+        // this.isFocus = option.focus;
         this.getCreationDetail(option.creationId);
         this.getComments(option.creationId);
     },
@@ -128,10 +138,20 @@ export default {
         getCreationDetail(id) {
             let that = this;
             const creationQuery = new AV.Query('LCCreation');
+            const currentUser = AV.User.current();
             creationQuery.include('user');
             creationQuery.get(id).then(res => {
                 that.creation = res.toJSON();
                 that.creation.formatTime = res.toJSON().createdAt.replace('T', ' ').split('.')[0];
+                wx.checkSession({
+                    success: function() {
+                        that.currentUserPraised = res.toJSON().praisedUsers.indexOf(currentUser.id) < 0 ? false : true;
+                    },
+                    fail: function() {
+                        that.currentUserPraised = false;
+                    }
+                })
+                
                 console.log(res.toJSON());
             })
         },
@@ -187,6 +207,90 @@ export default {
             })
         },
 
+         praise(creationId) {
+            let that = this;
+            wx.checkSession({
+                success: function() {
+                    that.currentUserPraised = true;
+                    that.creation.praise++;
+                    debugger;
+                    const creationPraiseMap = new AV.Object("CreationPraiseMap");
+                    const currentUser = AV.User.current();
+                    const userId = currentUser.id;
+                    const creation = AV.Object.createWithoutData("LCCreation", creationId);
+                    creationPraiseMap.set('user', currentUser);
+                    creationPraiseMap.set('creation', creation);
+                    creationPraiseMap.save().then(res => {
+                        console.log('点赞成功')
+                        creation.addUnique('praisedUsers', [userId])
+                        creation.save().then(function (post) {
+                            creation.increment('praise', 1).save().then(() => {
+                                console.log('新增一个点赞用户')
+                                wx.setStorageSync('creationLogin', true);
+                            });
+                        }, function (error) {
+                            // 异常处理
+                            console.error(error);
+                        });
+                    })
+                },
+                fail: function() {
+                    Dialog.confirm({
+                        title: '登录',
+                        message: '需要登录才能进行操作哦'
+                    }).then(() => {
+                        // on confirm
+                        wx.setStorage({
+                            key: 'creationLogin',
+                            data: true,
+                            success: function() {
+                                wx.switchTab({
+                                    url: '/pages/my/main'
+                                })
+                            },
+                            fail: function() {
+                                console.log('设置缓存失败');
+                            }
+                        })
+                    }).catch(() => {
+                        // on cancel
+                    });
+                }
+            });
+        },
+
+        cancelPraise(creationId) {
+            let that = this
+            that.currentUserPraised = false;
+            that.creation.praise--;
+            debugger;
+            const firstQuery = new AV.Query("CreationPraiseMap");
+            const secondQuery = new AV.Query("CreationPraiseMap");
+            const currentUser = AV.User.current();
+            const creation = AV.Object.createWithoutData("LCCreation", creationId);
+            firstQuery.equalTo('user', currentUser);
+            secondQuery.equalTo('creation', creation);
+            const query = AV.Query.and(firstQuery, secondQuery);
+            query.first().then(res => {
+                var praise = AV.Object.createWithoutData('CreationPraiseMap', res.id);
+                praise.destroy().then(function() {
+                    console.log('删除一条点赞成功')
+                }, function(err) {
+                    console.log(err)
+                })
+                creation.remove('praisedUsers', currentUser.id);
+                creation.save().then(function(res) {
+                    res.increment('praise', -1)
+                    return res.save().then(() => {
+                        console.log('取消点赞成功')
+                        wx.setStorageSync('creationLogin', true);
+                    }).catch(err => console.log(err))
+                }, function(err){
+                    console.log(err)
+                })
+            }).catch(err => console.log(err));
+        },
+
         commentChange(e) {
             this.commentContent = e.mp.detail;
         },
@@ -232,12 +336,6 @@ export default {
             margin-top: 10px;
             border-bottom: @list-border-bottom;
             position: relative;
-
-            .share-btn {
-                position: absolute;
-                top: 20px;
-                right: 20px;
-            }
         }
         .post-top {
             display: flex;
@@ -279,9 +377,35 @@ export default {
             }
         }
 
-        .date {
-            color: @second-grey;
-            font-size: 16px;
+        .publish-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .date {
+                color: @second-grey;
+                font-size: 16px;
+            }
+
+            .operation-img {
+                width: 25px;
+                height: 25px;
+            }
+
+            .share-btn {
+                margin-left: 10px;
+            }     
+            
+            .praise-number {
+                display: inline-block;
+                margin-left: 5px;
+                color: #767676;
+                position: relative;
+                bottom: 4px;
+            }
+
+            .praised {
+                color: #d81e06;
+            }
         }
 
         .comment {
@@ -289,6 +413,7 @@ export default {
             .comment-title {
                 color: @theme-blue;
                 font-size: 20px;
+                margin-bottom: 10px;
             }
         }
 
@@ -300,13 +425,23 @@ export default {
             .comment-item {
                 font-size: 16px;
                 padding: 10px;
+                padding-left: 0;
                 border-bottom: 1rpx solid #dfdfdf;
-            }
-            .comment-user {
+                .comment-avatar {
+                    width: 30px;
+                    height: 30px;
+                    vertical-align: middle;
+                    border-radius: 5px;
+                    margin-right: 10px;
+                }
 
+                .comment-user {
+                    color: @second-grey;
+                }
             }
             .comment-content {
-                margin-left: 10px;
+                margin-top: 3px;
+                margin-left: 40px;
                 padding: 10px 0;
             }
         }

@@ -143,7 +143,7 @@ export default {
         .play {
             width: 65px;
             height: 100%;
-            text-align-last: center;
+            text-align: center;
             background-color: rgb(27, 209, 73);
             color: #ffffff;
             line-height: 70px;
@@ -151,7 +151,7 @@ export default {
         .delete {
             width: 65px;
             height: 100%;
-            text-align-last: center;
+            text-align: center;
             background-color: #FF0000;
             color: #ffffff;
             line-height: 70px;

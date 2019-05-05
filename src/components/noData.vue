@@ -17,6 +17,7 @@ export default {
     .no-data {
         text-align: center;
         padding: 30px 0;
+        min-height: 100px;
         .no-data-img {
             width: 98px;
             height: 64px;

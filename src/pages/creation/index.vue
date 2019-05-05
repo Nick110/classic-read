@@ -29,8 +29,8 @@
                     <p class="date">{{post.formatTime}}</p>
                     <div class="operation">
                         <img v-if="post.currentUserPraised" @click="cancelPraise(post.objectId, index)" class="operation-img" src="../../../static/img/praise_red.png">
-                        <img v-else @click="praise(post.objectId, index)" class="operation-img" src="../../../static/img/praise.png">
-                        <span class="praise-number" :class="post.currentUserPraised ? 'praised' : ''">{{post.praise}}</span>
+                        <img v-else @click="praise(post.objectId, index)" class="operation-img" :class="post.praise > 0 ? '' : 'marginLeft'" src="../../../static/img/praise.png">
+                        <span v-if="post.praise > 0" class="praise-number" :class="post.currentUserPraised ? 'praised' : ''">{{post.praise}}</span>
                         <img class="operation-img" src="../../../static/img/comment.png" style="margin-right: 15px;" @click="toDetail(post.objectId, true)">
                         <button id="postShare"
                             open-type="share"
@@ -84,6 +84,8 @@
                     <image :src="imgSrc"
                         @load="imageLoad"
                         :style="{width: image.width + 'px', height: image.height + 'px'}" />
+                        <br/>
+                        <span class="delete-img" @click.stop="deleteImg">删除图片</span>
                 </div>
                 <div v-else class="upload-img" @click="chooseImg">
                     <van-icon name="plus" size="30px" color="#767676"></van-icon>
@@ -117,6 +119,11 @@ export default {
     onLoad() {
         this.getPosts();
     },
+
+    // onShow() {
+    //     console.log('show');
+    //     this.getPosts();
+    // },
 
     onShow() {
         const creationLogin = wx.getStorageSync('creationLogin');
@@ -313,6 +320,11 @@ export default {
             })
         },
 
+        deleteImg() {
+            this.imgChoosen = false;
+            this.imgSrc = '';
+        },
+
         imageLoad(e) {
             // console.log(e.mp.detail.width)
             var width = e.mp.detail.width,    //获取图片真实宽度
@@ -420,7 +432,7 @@ export default {
             margin: 20px 0;
             .post {
                 padding: 10px 30px;
-                border-bottom: 5px solid #ddddddee;
+                border-bottom: 5px solid #e7e7e7e3;
             }
             .post-top {
                 display: flex;
@@ -540,11 +552,19 @@ export default {
             text-align: center;
             margin-left: 30px;
             margin-bottom: 10px;
+            .delete-img {
+                color: @second-grey;
+                font-size: 16px;
+            }
         }
 
         .operation-img {
             width: 20px;
             height: 20px;
+        }
+
+        .marginLeft {
+            margin-right: 15px;
         }
 
         .praise-number {

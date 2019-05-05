@@ -84,6 +84,7 @@
                     creation.destroy().then(function(success) {
                         that.getCreations();
                         Toast.success('删除成功');
+                        wx.setStorageSync('creationLogin', true);
                     }, function(err) {
                         console.log(err);
                     })
@@ -108,7 +109,7 @@
         .delete {
             width: 65px;
             height: 100%;
-            text-align-last: center;
+            text-align: center;
             background-color: #FF0000;
             color: #ffffff;
             line-height: 70px;

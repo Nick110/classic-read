@@ -23,7 +23,7 @@ export function formatSentence(sentence) {
     // 取诗句第一句
     let firstSentence = sentence.split(/。|！|；/)[0]
     // 补充符号
-    let symbol = sentence.match(/。|！|；/)
+    let symbol = sentence.match(/。|！|；/) || ''
 
     let secondSentence = firstSentence.replace(/\s\s/, '')
     return secondSentence + symbol
