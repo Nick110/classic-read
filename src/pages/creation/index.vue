@@ -372,7 +372,7 @@ export default {
                     Toast('请输入创作内容！');
                 } else {
                     that.imgExisted().then(res => {
-                        const currentUser = AV.User.current().toJSON();
+                        const currentUser = AV.User.current();
                         const creation = new AV.Object('LCCreation');
                         if(res) {
                             creation.set('image', res);
