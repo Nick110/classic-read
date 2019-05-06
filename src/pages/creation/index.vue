@@ -113,6 +113,8 @@ export default {
             image: {},
             posts: [],
             pageSize: 30,
+            // 防止用户连续点击提交按钮
+            submitable: true
         }
     },
 
@@ -362,47 +364,53 @@ export default {
 
         submit() {
             let that = this;
-            if(!that.title) {
-                Toast('请输入标题！');
-            } else if(!that.content) {
-                Toast('请输入创作内容！');
+            if(that.submitable) {
+                that.submitable = false
+                if(!that.title) {
+                    Toast('请输入标题！');
+                } else if(!that.content) {
+                    Toast('请输入创作内容！');
+                } else {
+                    that.imgExisted().then(res => {
+                        const currentUser = AV.User.current().toJSON();
+                        const creation = new AV.Object('LCCreation');
+                        if(res) {
+                            creation.set('image', res);
+                        }
+                        creation.set('title', that.title);
+                        creation.set('content', that.content);
+                        creation.set('user', currentUser);
+                        creation.save().then(res => {
+                            Notify({
+                                text: "提交成功",
+                                duration: 1000,
+                                selector: "#custom-selector",
+                                backgroundColor: "#1989fa"
+                            });
+                            // 清空表单
+                            that.title = '';
+                            that.content = '';
+                            that.imgChoosen = false;
+                            that.imgSrc = '';
+                            that.image = {};
+                            // 返回帖子页
+                            that.popupShow = false;
+                            that.getPosts();
+                            that.submitable = true;
+                        }).catch(error => {
+                            console.error(error);
+                            Toast(error);
+                            Notify({
+                                text: "提交错误",
+                                duration: 1000,
+                                selector: "#custom-selector",
+                                backgroundColor: "#FF0000"
+                            });
+                        });
+                    })
+                }
             } else {
-                that.imgExisted().then(res => {
-                    const currentUser = AV.User.current().toJSON();
-                    const creation = new AV.Object('LCCreation');
-                    if(res) {
-                        creation.set('image', res);
-                    }
-                    creation.set('title', that.title);
-                    creation.set('content', that.content);
-                    creation.set('user', currentUser);
-                    creation.save().then(res => {
-                        Notify({
-                            text: "提交成功",
-                            duration: 1000,
-                            selector: "#custom-selector",
-                            backgroundColor: "#1989fa"
-                        });
-                        // 清空表单
-                        that.title = '';
-                        that.content = '';
-                        that.imgChoosen = false;
-                        that.imgSrc = '';
-                        that.image = {};
-                        // 返回帖子页
-                        that.popupShow = false;
-                        that.getPosts();
-                    }).catch(error => {
-                        console.error(error);
-                        Toast(error);
-                        Notify({
-                            text: "提交错误",
-                            duration: 1000,
-                            selector: "#custom-selector",
-                            backgroundColor: "#FF0000"
-                        });
-                    });
-                })
+                console.log('请勿重复点击！');
             }
         },
 
