@@ -114,7 +114,8 @@ export default {
             posts: [],
             pageSize: 30,
             // 防止用户连续点击提交按钮
-            submitable: true
+            submitable: true,
+            loginStatus: false,
         }
     },
 
@@ -128,11 +129,22 @@ export default {
     // },
 
     onShow() {
-        const creationLogin = wx.getStorageSync('creationLogin');
-        if(creationLogin) {
-            this.getPosts();
-            wx.setStorageSync('creationLogin', false);
-        }
+        let that = this;
+        wx.checkSession({
+            success: function() {
+                that.loginStatus = true;
+            },
+            fail: function() {
+                that.loginStatus = false;
+            },
+            complete: function() {
+                const creationLogin = wx.getStorageSync('creationLogin');
+                if(creationLogin) {
+                    that.getPosts();
+                    wx.setStorageSync('creationLogin', false);
+                }
+            }
+        })
     },
 
     onShareAppMessage(res) {
@@ -165,18 +177,25 @@ export default {
                     let obj = post.toJSON();
                     obj.formatTime = post.toJSON().createdAt.split('T')[0];
                     if(post.toJSON().praisedUsers) {
-                        wx.checkSession({
-                            success: function() {
-                                const currentUser = AV.User.current();
-                                obj.currentUserPraised = post.toJSON().praisedUsers.indexOf(currentUser.id) < 0 ? false : true
-                            },
-                            fail: function() {
-                                obj.currentUserPraised = false;
-                            },
-                            complete: function() {
-                                arr.push(obj);
-                            }
-                        })
+                        if(that.loginStatus) {
+                            const currentUser = AV.User.current();
+                            obj.currentUserPraised = post.toJSON().praisedUsers.indexOf(currentUser.id) < 0 ? false : true
+                        } else {
+                            obj.currentUserPraised = false;
+                        }
+                        arr.push(obj);
+                        // wx.checkSession({
+                        //     success: function() {
+                        //         const currentUser = AV.User.current();
+                        //         obj.currentUserPraised = post.toJSON().praisedUsers.indexOf(currentUser.id) < 0 ? false : true
+                        //     },
+                        //     fail: function() {
+                        //         obj.currentUserPraised = false;
+                        //     },
+                        //     complete: function() {
+                        //         arr.push(obj);
+                        //     }
+                        // })
                     } else {
                         obj.currentUserPraised = false;
                         arr.push(obj);

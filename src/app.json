@@ -1,54 +1,55 @@
 {
-  "pages": [
-    "pages/home/main",
-    "pages/creation/main",
-    "pages/library/main",
-    "pages/my/main",
-    "pages/poetryDetail/main",
-    "pages/poet/main",
-    "pages/tagDetail/main",
-    "pages/recite/main",
-    "pages/search/main",
-    "pages/allPoetryOfPoet/main",
-    "pages/collection/main",
-    "pages/creationDetail/main",
-    "pages/myCreation/main",
-    "pages/myRecitation/main",
-    "pages/about/main"
-  ],
-  "window": {
-    "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#2d5589",
-    "navigationBarTitleText": "诗歌",
-    "navigationBarTextStyle": "white",
-    "enablePullDownRefresh": true
-  },
-  "tabBar": {
-    "color": "#767676",
-    "selectedColor": "#2d5589",
-    "list": [{
-      "pagePath": "pages/home/main",
-      "text": "摘录",
-      "iconPath": "/static/img/daily.png",
-      "selectedIconPath": "/static/img/daily_selected.png"
+    "pages": [
+        "pages/home/main",
+        "pages/creation/main",
+        "pages/library/main",
+        "pages/my/main",
+        "pages/poetryDetail/main",
+        "pages/poet/main",
+        "pages/tagDetail/main",
+        "pages/recite/main",
+        "pages/search/main",
+        "pages/allPoetryOfPoet/main",
+        "pages/collection/main",
+        "pages/creationDetail/main",
+        "pages/myCreation/main",
+        "pages/myRecitation/main",
+        "pages/about/main"
+    ],
+    "window": {
+        "backgroundTextStyle": "dark",
+        "navigationBarBackgroundColor": "#2d5589",
+        "navigationBarTitleText": "诗歌",
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": true
     },
-    {
-        "pagePath": "pages/creation/main",
-        "text": "创作",
-        "iconPath": "/static/img/create.png",
-        "selectedIconPath": "/static/img/create_selected.png"
-    },
-    {
-      "pagePath": "pages/library/main",
-      "text": "文库",
-      "iconPath": "/static/img/library.png",
-      "selectedIconPath": "/static/img/library_selected.png"
-    },
-    {
-      "pagePath": "pages/my/main",
-      "text": "我的",
-      "iconPath": "/static/img/my.png",
-      "selectedIconPath": "/static/img/my_selected.png"
-    }]
-  }
+    "tabBar": {
+        "color": "#767676",
+        "selectedColor": "#2d5589",
+        "list": [{
+                "pagePath": "pages/home/main",
+                "text": "摘录",
+                "iconPath": "/static/img/daily.png",
+                "selectedIconPath": "/static/img/daily_selected.png"
+            },
+            {
+                "pagePath": "pages/creation/main",
+                "text": "创作",
+                "iconPath": "/static/img/create.png",
+                "selectedIconPath": "/static/img/create_selected.png"
+            },
+            {
+                "pagePath": "pages/library/main",
+                "text": "文库",
+                "iconPath": "/static/img/library.png",
+                "selectedIconPath": "/static/img/library_selected.png"
+            },
+            {
+                "pagePath": "pages/my/main",
+                "text": "我的",
+                "iconPath": "/static/img/my.png",
+                "selectedIconPath": "/static/img/my_selected.png"
+            }
+        ]
+    }
 }
