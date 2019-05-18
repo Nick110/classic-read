@@ -96,7 +96,7 @@
                         <div class="close-player">
                             <van-icon name="cross" size="25px" color="#000" @click="closePlayer"></van-icon>
                         </div>
-                        <div :class="['disc', playing ? '': 'animation-pause']">
+                        <div :class="['disc', playing ? 'playing': 'animation-pause']">
                             <div class='level_2'>
                                 <div class='level_3'>
                                     <div class='level_3'>
@@ -966,14 +966,14 @@ export default {
                 text-align: right;
             }
 
-            .animation-pause {
-                animation-play-state: paused;
-            }
-
-            // .playing {
-            //     animation: round 10s linear infinite;
-            //     animation-delay: 0.5s;
+            // .animation-pause {
+            //     animation-play-state: paused;
             // }
+
+            .playing {
+                animation: round 10s linear infinite;
+                animation-delay: 0.5s;
+            }
 
             @keyframes round {
                 100% {
@@ -991,8 +991,8 @@ export default {
                 align-items: center;
                 border-radius: 50%;
                 padding: 1.5%;
-                animation: round 10s linear infinite;
-                animation-delay: 0.5s;
+                // animation: round 10s linear infinite;
+                // animation-delay: 0.5s;
                 .disc-img {
                     width: 100%;
                     height: 100%;
