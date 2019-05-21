@@ -1,0 +1,11 @@
+{
+    "navigationBarTitleText": "朗诵",
+    "enablePullDownRefresh": true,
+    "usingComponents": {
+        "van-icon": "../../../static/vant/icon/index",
+        "van-tabs": "../../../static/vant/tabs/index",
+        "van-tab": "../../../static/vant/tab/index",
+        "van-toast": "../../../static/vant/toast/index",
+        "van-dialog": "../../../static/vant/dialog/index"
+    }
+}

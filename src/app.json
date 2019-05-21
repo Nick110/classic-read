@@ -14,7 +14,8 @@
         "pages/creationDetail/main",
         "pages/myCreation/main",
         "pages/myRecitation/main",
-        "pages/about/main"
+        "pages/about/main",
+        "pages/recitation/main"
     ],
     "window": {
         "backgroundTextStyle": "dark",
@@ -33,16 +34,22 @@
                 "selectedIconPath": "/static/img/daily_selected.png"
             },
             {
+                "pagePath": "pages/library/main",
+                "text": "文库",
+                "iconPath": "/static/img/library.png",
+                "selectedIconPath": "/static/img/library_selected.png"
+            },
+            {
                 "pagePath": "pages/creation/main",
                 "text": "创作",
                 "iconPath": "/static/img/create.png",
                 "selectedIconPath": "/static/img/create_selected.png"
             },
             {
-                "pagePath": "pages/library/main",
-                "text": "文库",
-                "iconPath": "/static/img/library.png",
-                "selectedIconPath": "/static/img/library_selected.png"
+                "pagePath": "pages/recitation/main",
+                "text": "朗诵",
+                "iconPath": "/static/img/recitation.png",
+                "selectedIconPath": "/static/img/recitation_selected.png"
             },
             {
                 "pagePath": "pages/my/main",
