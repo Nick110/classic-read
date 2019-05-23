@@ -135,7 +135,7 @@ export default {
                             id: poetry.toJSON().objectId,
                             name: poetry.toJSON().name,
                             // 匹配作者中文开头（姓名）
-                            formatAuthor: poetry.toJSON().author ? poetry.toJSON().author.match(/^[\u4e00-\u9fa5]+/)[0] : '',
+                            formatAuthor: poetry.toJSON().author ? (poetry.toJSON().author.match(/^[\u4e00-\u9fa5]+/) ? poetry.toJSON().author.match(/^[\u4e00-\u9fa5]+/)[0] : '') : '',
                             dynasty: poetry.toJSON().dynasty,
                             highlightName: that.highlight(keyword, poetry.toJSON().name),
                             formatContent: formatSentence(poetry.toJSON().content),

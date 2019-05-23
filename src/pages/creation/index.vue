@@ -507,9 +507,8 @@ export default {
             width: 40px;
             height: 40px;
             position: fixed;
-            bottom: 5px;
-            left: 50%;
-            transform: translate(-50%, 0);
+            bottom: 20px;
+            right: 20px;
             border: 1px solid @theme-blue;
             border-radius: 50%;
             display: flex;

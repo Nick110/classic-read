@@ -1,5 +1,9 @@
 <template>
     <div class="recitation">
+        <van-dialog id="van-dialog" />
+        <div class="to-recite" @click=toRecite>
+            <img class="recite-img" src="../../../static/img/recite.png" alt="我要朗诵">
+        </div>
         <div class="tabs">
             <van-tabs :active="current" @change="onChange" swipeable color="#92130a">
                 <van-tab title="最热"></van-tab>
@@ -15,11 +19,11 @@
                 <div class="record-text">
                     {{item.text}}
                 </div>
-                <div class="record-wrapper">
+                <div class="record-wrapper" @click="toPlayer(item.objectId)">
                     <van-icon custom-style="margin-top: 7px" name="volume-o" color="#92130a" size="20"></van-icon>
                     <span class="duration-span" v-if="item.formatDuration">{{item.formatDuration}}</span>
                 </div>
-                <div class="poetry">
+                <div class="poetry" @click="toPoetry(item.poetry.objectId)">
                     {{item.poetry.name}}
                 </div>
                 <div class="record-share">
@@ -42,7 +46,7 @@
                 <div class="record-text">
                     {{item.text}}
                 </div>
-                <div class="record-wrapper">
+                <div class="record-wrapper" @click="toPlayer(item.objectId)">
                     <van-icon custom-style="margin-top: 7px" name="volume-o" color="#92130a" size="20"></van-icon>
                     <span class="duration-span" v-if="item.formatDuration">{{item.formatDuration}}</span>
                 </div>
@@ -64,6 +68,7 @@
 
 <script>
 var AV = require("leancloud-storage");
+import Dialog from '../../../static/vant/dialog/dialog';
 import {ms2Minutes, symbolChange, getAudioTime} from '../../utils/timeUtils.js'
 export default {
     data() {
@@ -91,6 +96,15 @@ export default {
                 that.loginStatus = false;
             }
         })
+        const recitationNeedRefresh = wx.getStorageSync('recitationNeedRefresh');
+        if(recitationNeedRefresh) {
+            that.getRecitations();
+            wx.setStorageSync('recitationNeedRefresh', false)
+        }
+    },
+
+    onPullDownRefresh() {
+        this.getRecitations();
     },
 
     methods: {
@@ -150,6 +164,9 @@ export default {
                 this.getRecitations()
                 this.needRefresh = false
             }
+            wx.pageScrollTo({
+                scrollTop: 0
+            })
         },
 
         like(recordId, index, listNo) {
@@ -242,6 +259,32 @@ export default {
             }).catch(err => console.log(err))
         },
 
+        toPoetry(poetryId) {
+            wx.navigateTo({
+                url: `/pages/poetryDetail/main?id=${poetryId}`
+            })
+        },
+
+        toRecite() {
+            Dialog.confirm({
+                confirmButtonText: '去文库',
+                title: '去朗诵',
+                message: '朗诵需要选择诗词，现在去文库搜索吗？'
+            }).then(() => {
+                wx.switchTab({
+                    url: `/pages/library/main?fromRecitation=${true}`
+                })
+            }).catch(() => {
+                // on cancel
+                console.log('取消')
+            });
+        },
+
+        toPlayer(recordId) {
+            wx.navigateTo({
+                url: `/pages/player/main?recordId=${recordId}`
+            })
+        }
     }
 }
 </script>
@@ -249,6 +292,24 @@ export default {
 <style lang="less" scoped>
 @import url('../../theme.less');
     .recitation {
+        .to-recite {
+            width: 40px;
+            height: 40px;
+            border: 1px solid @theme-red;
+            border-radius: 50%;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: @theme-red;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            .recite-img {
+                width: 80%;
+                height: 80%;
+            }
+        }
         .tabs {
             position: fixed;
             top: 0;

@@ -130,10 +130,7 @@
                             <van-icon v-else name="play-circle-o" size="40px" color="#2d5589" @click="continuePlay"></van-icon>
                             <button
                                 id="playerShare"
-                                :data-url="playingRecord.file.url"
-                                :data-duration="playingRecord.duration"
-                                :data-colonDuration="playingRecord.colonDuration"
-                                :data-avatar="playingRecord.user.avatarUrl"
+                                :data-id="playingRecord.objectId"
                                 class="record-share-btn"
                                 open-type="share"
                                 style="width: 40px; height: 40px;">
@@ -297,8 +294,8 @@ export default {
         console.log(res.target)
         if((!res.target.id && res.from === 'button') || res.target.id === 'playerShare') {
             return {
-                title: `我朗诵了${that.poetry.name}，来听听吧`,
-                path: `/pages/poetryDetail/main?id=${that.poetry.objectId}&recordUrl=${res.target.dataset.url}&recordDuration=${res.target.dataset.duration}&recordColonDuration=${res.target.dataset.colonduration}&recordAvatar=${res.target.dataset.avatar}&shareEnter=${true}`,
+                title: `这一段朗诵很精彩，来听听吧`,
+                path: `/pages/player/main?recordId=${res.target.dataset.id}&shareEnter=${true}`,
             }
         } else {
             return {

@@ -15,7 +15,8 @@
         "pages/myCreation/main",
         "pages/myRecitation/main",
         "pages/about/main",
-        "pages/recitation/main"
+        "pages/recitation/main",
+        "pages/player/main"
     ],
     "window": {
         "backgroundTextStyle": "dark",

@@ -115,6 +115,14 @@ export default {
     this.getPoetry(option.poetryId);
   },
 
+  onHide() {
+    innerAudioContext.stop();
+  },
+
+  onUnload() {
+      innerAudioContext.stop();
+  },
+
   methods: {
     getPoetry(poetryId) {
       const poetryQuery = new AV.Query("LCPoetry");

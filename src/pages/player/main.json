@@ -1,0 +1,8 @@
+{
+    "navigationBarTitleText": "播放",
+    "enablePullDownRefresh": false,
+    "disableScroll": true,
+    "usingComponents": {
+        "van-icon": "../../../static/vant/icon/index"
+    }
+}
