@@ -1,9 +1,9 @@
 {
-  "name": "my-project",
+  "name": "classic-read",
   "version": "1.0.0",
   "mpvueTemplateProjectVersion": "0.1.0",
   "description": "A Mpvue project",
-  "author": "jiangshiyang <shiyang.jiang@qianli-inc.com>",
+  "author": "Yangshaoxia",
   "private": true,
   "scripts": {
     "dev:wx": "node build/dev-server.js wx",
