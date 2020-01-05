@@ -6,7 +6,7 @@ npm install
 ## 预览
 ![小程序码](./miniProgram_code.jpg)
 
-![小程序截图](./preview.png)
+<img src="./preview.png" width="40%" height="40%"/>
 
 ---
 
