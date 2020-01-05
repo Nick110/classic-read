@@ -6,4 +6,8 @@ npm install
 ## 预览
 ![小程序码](./miniProgram_code.jpg)
 
+![小程序截图](./preview.png)
+
+---
+
 古诗词数据来自于[hujiaweibujidao/poetry](https://github.com/hujiaweibujidao/poetry)
