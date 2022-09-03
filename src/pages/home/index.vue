@@ -6,7 +6,7 @@
             @touchstart="switchCardStart"
             @touchend="switchCardEnd(1, $event)"
             :animation="animationData1"
-            :style="{width: cardWidth1 + 'px', zIndex: zIndex1, top: top1 + 'px', marginLeft: marginLeft1 + 'px'}"
+            :style="{width: cardWidth1 + 'px', zIndex: zIndex1, top: top1 + 'vh', marginLeft: marginLeft1 + 'px'}"
         >
             <div class="author">{{poetry.author}}</div>
             <div class="chinese-calendar">
@@ -21,7 +21,7 @@
             @touchstart="switchCardStart"
             @touchend="switchCardEnd(2, $event)"
             :animation="animationData2"
-            :style="{zIndex: zIndex2, top: top2 + 'px', width: cardWidth2 + 'px', marginLeft: marginLeft2 + 'px'}"
+            :style="{zIndex: zIndex2, top: top2 + 'vh', width: cardWidth2 + 'px', marginLeft: marginLeft2 + 'px'}"
         >
             <div class="author">{{secondPoetry.author}}</div>
             <div class="chinese-calendar">
@@ -32,7 +32,7 @@
         </div>
         <div
             class="verse"
-            :style="{zIndex: zIndex3, top: top3 + 'px', width: cardWidth3 + 'px', marginLeft: marginLeft3 + 'px'}"
+            :style="{zIndex: zIndex3, top: top3 + 'vh', width: cardWidth3 + 'px', marginLeft: marginLeft3 + 'px'}"
         ></div>
     </div>
 </template>
@@ -52,18 +52,18 @@ export default {
       chineseDate: "",
       animationData1: {},
       animationData2: {},
-      top1: 80,
-      top2: 75,
-      top3: 70,
+      top1: 20,
+      top2: 19,
+      top3: 18,
       cardWidth1: 280,
       cardWidth2: 270,
       cardWidth3: 260,
       zIndex1: 3,
       zIndex2: 2,
       zIndex3: 1,
-      marginLeft1: -180,
-      marginLeft2: -176,
-      marginLeft3: -172
+      marginLeft1: -140,
+      marginLeft2: -136,
+      marginLeft3: -132
     };
   },
 
@@ -233,29 +233,29 @@ export default {
         this.animationData1 = this.animation.export();
         this.getDailypoetry();
         setTimeout(() => {
-          this.top1 = 75;
+          this.top1 = 19;
           this.cardWidth1 = 270;
           this.zIndex1 = 2;
-          this.marginLeft1 = -176;
+          this.marginLeft1 = -136;
 
-            this.top2 = 80;
+            this.top2 = 20;
             this.cardWidth2 = 280;
             this.zIndex2 = 3;
-            this.marginLeft2 = -180;
+            this.marginLeft2 = -140;
         }, 500);
       } else if (cardNo === 2) {
         this.animationData2 = this.animation.export();
         this.getDailypoetryTwo();
         setTimeout(() => {
-          this.top1 = 80;
+          this.top1 = 20;
           this.cardWidth1 = 280;
           this.zIndex1 = 3;
-          this.marginLeft1 = -180;
+          this.marginLeft1 = -140;
 
-          this.top2 = 75;
+          this.top2 = 19;
           this.cardWidth2 = 270;
           this.zIndex2 = 2;
-          this.marginLeft2 = -176;
+          this.marginLeft2 = -136;
         }, 500);
       }
     },
