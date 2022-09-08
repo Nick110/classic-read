@@ -41,12 +41,6 @@
                 "selectedIconPath": "/static/img/library_selected.png"
             },
             {
-                "pagePath": "pages/creation/main",
-                "text": "创作",
-                "iconPath": "/static/img/create.png",
-                "selectedIconPath": "/static/img/create_selected.png"
-            },
-            {
                 "pagePath": "pages/recitation/main",
                 "text": "朗诵",
                 "iconPath": "/static/img/recitation.png",
